@@ -8,5 +8,21 @@
     <artifactId>divider</artifactId>
     <version>2.6a</version>
 
-    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>divider.Divider</mainClass>
+                            <packageName>divider</packageName>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

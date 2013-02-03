@@ -10,5 +10,5 @@ How to run
 ----------
 You'll need maven to build it.
 
-mvn clean install
-java -jar target/divider-2.6a.jar
+    mvn clean install
+    java -jar target/divider-2.6a.jar

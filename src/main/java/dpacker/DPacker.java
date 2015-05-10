@@ -2,7 +2,7 @@
  * Created on 20/3/2007
  *
  */
-package dpacker;
+package fem.dpacker;
 import java.util.*;
 import java.io.*;
 
@@ -12,7 +12,6 @@ import java.io.*;
 public class DPacker {
 	public static void main (String args[]) {
 		String if_base=null, of_name=null;
-		boolean need_help;
 		int i;
 		System.out.println(launch_message);
 		
@@ -59,16 +58,16 @@ public class DPacker {
 class DDataCollector
 {
 	int n_elements, n_nodes, n_forces, n_contacts;
-	ArrayList indsStrings=new ArrayList(100);
-	ArrayList koorStrings=new ArrayList(100);
-	ArrayList contactStrings=new ArrayList(40);
-	ArrayList forceStrings=new ArrayList(40);
+	ArrayList<String> indsStrings     = new ArrayList<String>(100);
+	ArrayList<String> koorStrings     = new ArrayList<String>(100);
+	ArrayList<String> contactStrings  = new ArrayList<String>(40);
+	ArrayList<String> forceStrings    = new ArrayList<String>(40);
 	Properties settings=new Properties();
 	
 	boolean collect(String if_base)
 	{
-		FileInputStream inds_file, koor_file, contact_file, force_file,
-			settings_file;
+		FileInputStream inds_file = null, koor_file = null, contact_file = null, 
+		      force_file = null, settings_file = null;
 		BufferedReader in;
 		String file_name="";
 		String line;
@@ -77,81 +76,110 @@ class DDataCollector
 		try{
 			file_name=if_base+".inds";
 			inds_file=new FileInputStream(file_name);
+			in=new BufferedReader(new InputStreamReader(inds_file));
+	      try {
+	         line=in.readLine();
+	         while(line!=null)
+	         {
+	            indsStrings.add(line);  
+	            line=in.readLine();
+	         }
+	      } catch(IOException e)
+	      {e.printStackTrace();}
+		} catch(FileNotFoundException e){
+			System.out.println("File not found:"+file_name);
+			return false;
+		} finally {
+		   try {
+            inds_file.close();
+         } catch (IOException e) {
+            e.printStackTrace();
+         }
 		}
-		catch(FileNotFoundException e)
-		{System.out.println("File not found:"+file_name);return false;}
-		in=new BufferedReader(new InputStreamReader(inds_file));
-		try {
-		line=in.readLine();
-		while(line!=null)
-		{
-			indsStrings.add(line);	
-			line=in.readLine();
-		}
-		}
-		catch(IOException e)
-		{e.printStackTrace();}
-		//end indexes
+   	//end indexes
 
-		//coordinates
-		try{
-			file_name=if_base+".koor";
-			koor_file=new FileInputStream(file_name);
+   	//coordinates
+   	try{
+   		file_name=if_base+".koor";
+   		koor_file=new FileInputStream(file_name);
+   		in=new BufferedReader(new InputStreamReader(koor_file));
+         try {
+            line=in.readLine();
+            while(line!=null)
+            {
+               koorStrings.add(line);  
+               line=in.readLine();
+            }
+         }
+         catch(IOException e)
+         {e.printStackTrace();}
+   	} catch(FileNotFoundException e) {
+			System.out.println("File not found:"+file_name);
+			return false;
+		} finally {
+			try {
+				koor_file.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
-		catch(FileNotFoundException e)
-		{System.out.println("File not found:"+file_name);return false;}
-		in=new BufferedReader(new InputStreamReader(koor_file));
-		try {
-		line=in.readLine();
-		while(line!=null)
-		{
-			koorStrings.add(line);	
-			line=in.readLine();
+   	//end coordinates 
+	
+   	//contacts
+   	try{
+   		file_name=if_base+".contact";
+   		contact_file=new FileInputStream(file_name);
+   		in=new BufferedReader(new InputStreamReader(contact_file));
+         try {
+            line=in.readLine();
+            while(line!=null)
+            {
+               contactStrings.add(line);  
+               line=in.readLine();
+            }
+         }
+         catch(IOException e)
+         {e.printStackTrace();}
+   	}
+   	catch(FileNotFoundException e) {
+			System.out.println("File not found:"+file_name);
+			return false;
+		} finally {
+			try {
+				contact_file.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
-		}
-		catch(IOException e)
-		{e.printStackTrace();}
-		//end coordinates 
-		
-		//contacts
-		try{
-			file_name=if_base+".contact";
-			contact_file=new FileInputStream(file_name);
-		}
-		catch(FileNotFoundException e)
-		{System.out.println("File not found:"+file_name);return false;}
-		in=new BufferedReader(new InputStreamReader(contact_file));
-		try {
-		line=in.readLine();
-		while(line!=null)
-		{
-			contactStrings.add(line);	
-			line=in.readLine();
-		}
-		}
-		catch(IOException e)
-		{e.printStackTrace();}
-		//end contacts
+   	//end contacts
 
-		//forces
-		try{
-			file_name=if_base+".force";
-			force_file=new FileInputStream(file_name);
+   	//forces
+   	try{
+   		file_name=if_base+".force";
+   		force_file=new FileInputStream(file_name);
+   		in=new BufferedReader(new InputStreamReader(force_file));
+         try {
+            line=in.readLine();
+            while(line!=null)
+            {
+               forceStrings.add(line); 
+               line=in.readLine();
+            }
+         }
+         catch(IOException e)
+         {e.printStackTrace();}
+   	}
+   	catch(FileNotFoundException e) {
+			System.out.println("File not found:"+file_name);
+			return false;
+		} finally {
+			try {
+				force_file.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
-		catch(FileNotFoundException e)
-		{System.out.println("File not found:"+file_name);return false;}
-		in=new BufferedReader(new InputStreamReader(force_file));
-		try {
-		line=in.readLine();
-		while(line!=null)
-		{
-			forceStrings.add(line);	
-			line=in.readLine();
-		}
-		}
-		catch(IOException e)
-		{e.printStackTrace();}
-		//end forces
+   	//end forces
 
 		//settings
 		try{
@@ -161,18 +189,21 @@ class DDataCollector
 		}
 		catch(FileNotFoundException e)
 		{System.out.println("File not found:"+file_name);return false;}
-		catch(IOException e)
-		{e.printStackTrace();}
+		catch(IOException e) {e.printStackTrace();}
 		//end settings
+		
+		try {
+         in.close();
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
 
 		return true;
 	}
 	
 	boolean out(String of_name)
 	{
-		String sval;
 		int i;
-		String[] snames={"E","nu","kl","abc","apr","kpr","a5","a2","a3","a4","step","time"};
 		FileOutputStream out_file;
 		PrintWriter out;
 
@@ -189,13 +220,7 @@ class DDataCollector
 		System.out.println("writing settings...");
 		//settings
 		out.println("[settings]");
-/*		for(i=0;i<snames.length; i++)
-		{
-			sval=settings.getProperty(snames[i]);
-			if(sval==null) {System.err.println("ERROR: Property not found:"+snames[i]);}
-			out.println(snames[i]+"="+sval);
-		}
-*/		
+
 		try{
 		settings.store(out_file,"");
 		}

@@ -13,6 +13,7 @@ import fem.common.IFemSettings;
 import fem.divider.figure.CZMark;
 import fem.divider.figure.CZone;
 import fem.geometry.Dot;
+import fem.geometry.DotMaterial;
 import fem.geometry.Triangle;
 
 /**
@@ -21,11 +22,10 @@ import fem.geometry.Triangle;
  * @version
  */
 public class Node extends fem.geometry.Dot {
-
-	//TODO: make properties private
+   //TODO: make properties private
 	Mesh mesh;
 	
-	ArrayList elements = new ArrayList(5);
+	ArrayList<Element> elements = new ArrayList<Element>(5);
 	private boolean edge = false;
 	boolean valid = true;
 
@@ -100,17 +100,22 @@ public class Node extends fem.geometry.Dot {
 	/**
 	 * Creates new Node Adds node to mesh_
 	 */
-	public Node(Mesh mesh_, double x_, double y_) {
-		super(x_, y_);
+	public Node(Mesh mesh_, double x_, double y_, DotMaterial material_) {
+		super(x_, y_, material_);
 		mesh = mesh_;
 		mesh.nodes.add(this);
+	}
+	public Node(Mesh mesh_, double x_, double y_) {
+	   super(x_, y_);
+	   mesh = mesh_;
+      mesh.nodes.add(this);
 	}
 
 	/**
 	 * Creates new Node Adds node to mesh_
 	 */
 	public Node(Mesh mesh_, Dot dot) {
-		this(mesh_, dot.getX(), dot.getY());
+		this(mesh_, dot.getX(), dot.getY(), dot.material);
 		if (dot instanceof fem.divider.figure.Node) {
 			fem.divider.figure.Node n1 = (fem.divider.figure.Node) dot;
 			original = true;
@@ -118,6 +123,86 @@ public class Node extends fem.geometry.Dot {
 			originalAngle = n1.angle();
 		}
 	}
+	
+	/**
+    * Creates new Node between given Nodes 
+    * If given Nodes have link to segment, also sets segment and offset of new node Adds node to mesh_
+    * New Node will be 'AIR-material' if some of given is 'AIR-material'
+    * 
+    * @param edge --- whether result node will be on edge
+    * @param part --- which part of begin to end length will be left for begin to this
+    */
+   public Node(Node begin, Node end, double part, boolean edge) {
+      this( begin.mesh, 
+            begin.getX() + (end.getX() - begin.getX() ) * part, 
+            begin.getY() + (end.getY() - begin.getY() ) * part,
+           (begin.material == DotMaterial.AIR || end.material == DotMaterial.AIR) ? DotMaterial.AIR : DotMaterial.FIGURE
+      );
+
+      // node will be on edge. We need to know it's segment and offset
+      if (edge && begin.segment != null && end.segment != null) {
+         this.edge = true;
+
+         Node realBegin = begin, realEnd = end;
+         double beginOffset = 0.0, endOffset = 0.0;
+
+         // check, whether our nodes are on the ends of the segment
+         // both on ends
+         if (begin.figureNode != null && end.figureNode != null) {
+
+            // check common segment
+            if (!begin.segment.hasNode(end.figureNode)) {
+               // reverse order
+               realBegin = end;
+               realEnd = begin;
+            }
+            beginOffset = 0.0;
+            endOffset = realBegin.segment.getLength();
+
+         } else {
+            // one on end, other not
+            if (begin.figureNode != null || end.figureNode != null) {
+
+               // assuming begin and end belong to different segments
+               if (begin.figureNode != null) {
+                  // begin is edge of segment
+                  realBegin = end;
+                  realEnd = begin;
+               } else {
+                  // end is edge of segment
+                  realBegin = begin;
+                  realEnd = end;
+               }
+               if (begin.segment == end.segment) {
+                  // on the same segment. Swap realBegin and realEnd
+                  Node tmp = realBegin;
+                  realBegin = realEnd;
+                  realEnd = tmp;
+                  beginOffset = 0.0;
+                  endOffset = realEnd.offset;
+               } else {
+                  // begin and end are on different segments. all right.
+                  beginOffset = realBegin.offset;
+                  endOffset = realBegin.segment.getLength();
+               }
+
+            } else {
+               // none on end
+
+               if (begin.offset > end.offset) {
+                  realBegin = end;
+                  realEnd = begin;
+               }
+               beginOffset = realBegin.offset;
+               endOffset = realEnd.offset;
+            }
+         }
+         offset = beginOffset + (endOffset - beginOffset)
+               * (begin == realBegin ? part : 1 - part);
+         segment = realBegin.segment;
+
+      }
+   }// end Node(Node begin, Node end, double part, boolean edge)
 
 	public static Node createConditionaly(Mesh mesh, Dot dot) {
 		Node node;
@@ -133,8 +218,8 @@ public class Node extends fem.geometry.Dot {
 	}
 
 	/**
-	 * Creates new Node Adds node to mesh_ node_ is regarded as begining of some
-	 * segment
+	 * Creates new Node 
+	 * Adds node to mesh_ node_ is regarded as beginning of some segment
 	 */
 	public static Node createFromFigureNode(Mesh mesh_,
 			fem.divider.figure.Node node_) {
@@ -173,94 +258,14 @@ public class Node extends fem.geometry.Dot {
 	}
 	
 	/**
-	 * Creates new Node between given Nodes If given Nodes have link to segment,
-	 * also sets segment and offset of new node Adds node to mesh_
-	 * 
-	 * @param edge
-	 *            --- whether result node will be on edge
-	 * @param part
-	 *            --- which part of begin to end length will be left for begin
-	 *            to this
-	 */
-	public Node(Node begin, Node end, double part, boolean edge) {
-		this(begin.mesh, begin.getX() + (end.getX() - begin.getX() ) * part, begin.getY() 
-				+ (end.getY()  - begin.getY() ) * part);
-
-		// node will be on edge. We need to know it's segment and offset
-		if (edge && begin.segment != null && end.segment != null) {
-			this.edge = true;
-
-			Node realBegin = begin, realEnd = end;
-			double beginOffset = 0.0, endOffset = 0.0;
-			boolean reverse = false;
-
-			// check, whether our nodes are on the ends of the segment
-			// both on ends
-			if (begin.figureNode != null && end.figureNode != null) {
-
-				// check common segment
-				if (!begin.segment.hasNode(end.figureNode)) {
-					// reverse order
-					realBegin = end;
-					realEnd = begin;
-				}
-				beginOffset = 0.0;
-				endOffset = realBegin.segment.getLength();
-
-			} else {
-				// one on end, other not
-				if (begin.figureNode != null || end.figureNode != null) {
-
-					// assuming begin and end belong to different segments
-					if (begin.figureNode != null) {
-						// begin is edge of segment
-						realBegin = end;
-						realEnd = begin;
-					} else {
-						// end is edge of segment
-						realBegin = begin;
-						realEnd = end;
-					}
-					if (begin.segment == end.segment) {
-						// on the same segment. Swap realBegin and realEnd
-						Node tmp = realBegin;
-						realBegin = realEnd;
-						realEnd = tmp;
-						beginOffset = 0.0;
-						endOffset = realEnd.offset;
-					} else {
-						// begin and end are on different segments. all right.
-						beginOffset = realBegin.offset;
-						endOffset = realBegin.segment.getLength();
-					}
-
-				} else {
-					// none on end
-
-					if (begin.offset > end.offset) {
-						realBegin = end;
-						realEnd = begin;
-					}
-					beginOffset = realBegin.offset;
-					endOffset = realEnd.offset;
-				}
-			}
-			offset = beginOffset + (endOffset - beginOffset)
-					* (begin == realBegin ? part : 1 - part);
-			segment = realBegin.segment;
-
-		}
-	}// end Node(Node begin, Node end, double part, boolean edge)
-
-	/**
 	 * Removes all known links to node (in mesh and in elements) Also delete()s
 	 * all its elements
 	 */
 	public void delete() {
 		mesh.forget(this);
 		if (elements != null) {
-			for (Iterator i = elements.iterator(); i.hasNext();) {
-				((Element) i.next()).deleteBy(this);
+			for(Element i : elements) {
+				i.deleteBy(this);
 			}
 		}
 		elements = null;
@@ -271,7 +276,7 @@ public class Node extends fem.geometry.Dot {
 	 * Add Element
 	 */
 	public void add(Triangle element) {
-		elements.add(element);
+		elements.add((Element) element);
 	}
 
 	/**
@@ -364,9 +369,9 @@ public class Node extends fem.geometry.Dot {
 	 * 
 	 * @returns set of affected elements
 	 */
-	public HashSet lawson() {
+	public HashSet<Element> lawson() {
 		// System.out.println("Lawson 4 "+elements.size()+" elements");
-		HashSet aff = new HashSet();
+		HashSet<Element> aff = new HashSet<Element>();
 
 		Element myEl, oppEl; // close element and opposite element
 		// walk through all Elements. Thay may be added at the time this loop is

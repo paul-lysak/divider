@@ -8,7 +8,6 @@ package fem.divider;
 
 //import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -26,6 +25,7 @@ import fem.divider.figure.Figure;
 import fem.divider.figure.FigureStreamer;
 import fem.divider.figure.command.CreateContourCommand;
 import fem.divider.figure.command.EditInfluenceCommand;
+import fem.divider.figure.command.CreateAirFrameCommand;
 import fem.divider.figure.command.RedoAction;
 import fem.divider.figure.command.UndoAction;
 import fem.divider.mesh.MeshFileFilter;
@@ -38,7 +38,35 @@ import fem.divider.mesh.MethodRRegular;
  * @version 
  */
 public class Divider {
-
+   public static final double DEFAULT_WORLD_LEFT = -10;
+   public static final double DEFAULT_WORLD_RIGHT = 100;
+   public static final double DEFAULT_WORLD_BOTTOM = -10;
+   public static final double DEFAULT_WORLD_TOP = 100;
+   
+   Action newFigureAction;
+   Action openFigureAction;
+   Action saveFigureAction;
+   Action exitAction;
+   Action createContourAction;
+   Action editWorldAction;
+   Action createAirFrameAction;
+   Action editMeshSettingsAction;
+   Action editPreferencesAction;
+   Action editInfluenceAction;
+   Action meshdownAction;
+   Action saveMeshAction;
+   UndoAction undoAction;
+   RedoAction redoAction;
+   
+   DividerUI dividerUI;
+   World world;
+   Figure figure;
+   MeshdownActor meshdownActor;
+   String[] cmdLine;
+   CmdLineDetails cmdLineDetails=null;
+   fem.divider.mesh.Mesh lastMesh = null;
+   fem.divider.mesh.measure.Measure measure;   
+   
 		/** Creates new Divider */
     public Divider(String args[]) {
     			divider=this;
@@ -174,7 +202,11 @@ public class Divider {
 				new ImageIcon(Divider.class.getResource("resources/images/stock_new_16.png")) //$NON-NLS-1$
 				)
 		{
-				public void actionPerformed(ActionEvent event)
+				/**
+          * 
+          */
+         private static final long serialVersionUID = 1L;
+            public void actionPerformed(ActionEvent event)
 				{
 						Figure newFigure = new Figure();
 						setFigure( newFigure );
@@ -194,12 +226,15 @@ public class Divider {
 				new ImageIcon(Divider.class.getResource("resources/images/stock_open_16.png")) //$NON-NLS-1$
 				)
 		{
-				public void actionPerformed(ActionEvent event)
+		      private static final long serialVersionUID = 1L;
+            public void actionPerformed(ActionEvent event)
 				{
 						if( dividerUI.getFileChooser().showOpenDialog(null) ==
 										JFileChooser.CANCEL_OPTION) return; //cancel opening
 						String filename = dividerUI.getFileChooser().getSelectedFile().getPath();
 						openFigure(filename);
+						if( figure.isNonEmpty() )
+						   divider.createAirFrameAction.setEnabled(true);
 				}
 				{
 						putValue(Action.SHORT_DESCRIPTION, Messages.getString("Divider.Open_figure_12")); //$NON-NLS-1$
@@ -212,7 +247,9 @@ public class Divider {
 				new ImageIcon(Divider.class.getResource("resources/images/stock_save_16.png")) //$NON-NLS-1$
 				)
 		{
-				public void actionPerformed(ActionEvent event)
+
+         private static final long serialVersionUID = 1L;
+            public void actionPerformed(ActionEvent event)
 				{
 						if(dividerUI.getFileChooser().showSaveDialog(null) == 
 								JFileChooser.CANCEL_OPTION) return; //cancel saving
@@ -247,7 +284,8 @@ public class Divider {
 				new ImageIcon(Divider.class.getResource("resources/images/stock_exit.png")) //$NON-NLS-1$
 				)
 		{
-				public void actionPerformed(ActionEvent event)
+            private static final long serialVersionUID = 1L;
+            public void actionPerformed(ActionEvent event)
 				{
 						exit(0);
 				}
@@ -261,15 +299,17 @@ public class Divider {
 				new ImageIcon(Divider.class.getResource("resources/images/createContour.png")) //$NON-NLS-1$
 				)
 		{
-				public void actionPerformed(ActionEvent event)
+            private static final long serialVersionUID = 1L;
+            public void actionPerformed(ActionEvent event)
 				{
 						dividerUI.switchToFigure();
-
 						if(getFigure().getCommandStack().doNewCommand(new CreateContourCommand(figure)))
 						{
 							figure.panel.redraw();
 							dividerUI.setStatusbarText(Messages.getString("Divider.Contour_created_25")); //$NON-NLS-1$
 						}
+						if( figure.isNonEmpty() )
+                     divider.createAirFrameAction.setEnabled(true);
 				}
 				{
 						putValue(Action.SHORT_DESCRIPTION, Messages.getString("Divider.Create_new_contour_26")); //$NON-NLS-1$
@@ -281,7 +321,8 @@ public class Divider {
 				new ImageIcon(Divider.class.getResource("resources/images/editWorld.png")) //$NON-NLS-1$
 				)
 		{
-				public void actionPerformed(ActionEvent event)
+         private static final long serialVersionUID = 1L;
+            public void actionPerformed(ActionEvent event)
 				{
 						world.edit();
 				}
@@ -296,7 +337,8 @@ public class Divider {
 				new ImageIcon(Divider.class.getResource("resources/images/editMeshSettings.png")) //$NON-NLS-1$
 				)
 		{
-				public void actionPerformed(ActionEvent event)
+         private static final long serialVersionUID = 1L;
+            public void actionPerformed(ActionEvent event)
 				{
 						figure.getMeshSettings().edit();
 				}
@@ -305,13 +347,36 @@ public class Divider {
 				}
 		};//end editMeshSettingsAction
 
+		createAirFrameAction = new 
+		AbstractAction ( Messages.getString("Divider.Create_air_frame_1"), 
+				new ImageIcon(Divider.class.getResource("resources/images/createAirFrame.png"))
+			)
+		{
+         private static final long serialVersionUID = 1L;
+
+         public void actionPerformed(ActionEvent event){
+				dividerUI.setStatusbarText("Add air");
+				dividerUI.switchToFigure();
+            if(getFigure().getCommandStack().doNewCommand(new CreateAirFrameCommand(figure, dividerUI)))
+            {
+               figure.panel.redraw();
+               dividerUI.setStatusbarText("Select parameters for the air frame");
+            }
+			}
+			{
+				putValue(Action.SHORT_DESCRIPTION, "Generate frame as box (by to opposite points)");
+			}
+		};// end createAirFrameAction
+		createAirFrameAction.setEnabled(false);
+
 
 		editPreferencesAction = new
 		AbstractAction ("Preferences" //,
 				//new ImageIcon(Divider.class.getResource("resources/images/editMeshSettings.png")) //$NON-NLS-1$
 				)
 		{
-				public void actionPerformed(ActionEvent event)
+            private static final long serialVersionUID = 1L;
+            public void actionPerformed(ActionEvent event)
 				{
 						if( preferencesEditor.run(preferences) )
 							dividerUI.setStatusbarText("Preferences applied");
@@ -328,7 +393,8 @@ public class Divider {
 				new ImageIcon(Divider.class.getResource("resources/images/Influence.png")) //$NON-NLS-1$
 				)
 		{
-				public void actionPerformed(ActionEvent event)
+            private static final long serialVersionUID = 1L;
+            public void actionPerformed(ActionEvent event)
 				{
 //						commandStack.doNewCommand(new EditInfluenceCommand(divider, figure));
 						getFigure().getCommandStack().doNewCommand(new EditInfluenceCommand(figure));
@@ -339,14 +405,13 @@ public class Divider {
 		};//end editInfluenceAction
 
 
-		
-		
 		meshdownAction = new
 		AbstractAction (Messages.getString("Divider.Meshdown_36"),  //$NON-NLS-1$
 				new ImageIcon(Divider.class.getResource("resources/images/createMesh.png")) //$NON-NLS-1$
 				)
 		{
-				public void actionPerformed(ActionEvent event)
+		      private static final long serialVersionUID = 1L;
+            public void actionPerformed(ActionEvent event)
 				{
 						dividerUI.switchToMesh();
 						meshdownActor.start();
@@ -362,7 +427,11 @@ public class Divider {
 				new ImageIcon(Divider.class.getResource("resources/images/saveMesh.png")) //$NON-NLS-1$
 				)
 		{
-				public void actionPerformed(ActionEvent event)
+				/**
+          * 
+          */
+         private static final long serialVersionUID = 1L;
+            public void actionPerformed(ActionEvent event)
 				{
 						if(dividerUI.getMeshFileChooser().showDialog( null, Messages.getString("Divider.Save_mesh_41")) ==  //$NON-NLS-1$
 								JFileChooser.CANCEL_OPTION) return; //cancel saving
@@ -398,43 +467,10 @@ public class Divider {
 		undoAction=new UndoAction();
 		redoAction=new RedoAction();
 		}//end createActions()
-		
-		Action newFigureAction;
-		Action openFigureAction;
-		Action saveFigureAction;
-		Action exitAction;
-		Action createContourAction;
-		Action editWorldAction;
-		Action editMeshSettingsAction;
-		Action editPreferencesAction;
-		Action editInfluenceAction;
-		Action meshdownAction;
-	
-		Action saveMeshAction;
-		UndoAction undoAction;
-		RedoAction redoAction;
-		
-		DividerUI dividerUI;
-		private Preferences preferences;
-		private PreferencesEditor preferencesEditor=new PreferencesEditor();
-		
-		World world;
-		Figure figure;
-		fem.divider.mesh.Mesh lastMesh = null;
-		MeshdownActor meshdownActor;
-		fem.divider.mesh.measure.Measure measure;
-//		divider.mesh.MeshSettings meshSettings;
-		private static Divider divider;
-		String[] cmdLine;
-		CmdLineDetails cmdLineDetails=null;;
 
 		private DecimalFormat decimalFormat = new DecimalFormat();
 		private DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
-		
-		public static final double DEFAULT_WORLD_LEFT = -10;
-		public static final double DEFAULT_WORLD_RIGHT = 100;
-		public static final double DEFAULT_WORLD_BOTTOM = -10;
-		public static final double DEFAULT_WORLD_TOP = 100;		
-		
-
+	   private Preferences preferences;
+	   private PreferencesEditor preferencesEditor=new PreferencesEditor();
+		private static Divider divider;		
 }

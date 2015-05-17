@@ -138,6 +138,28 @@ public class MultifileMeshStreamer implements IMeshStreamer {
 		
 		
 		/**
+		 * Saves material marks (refer to enum NodeMaterial in fem.divider.figure.Node.java) of nodes
+		 * Format:
+		 * 0 - AIR
+		 * 1 - FIGURE itself
+		 */
+		protected void saveMaterial(Mesh mesh, OutputStream materialStream) throws Exception
+		{
+			PrintWriter materialWriter = new PrintWriter(materialStream, true);
+			saveMaterial(mesh, materialWriter);
+		}
+		
+		protected void saveMaterial(Mesh mesh, PrintWriter materialWriter) throws Exception
+		{
+			for(Node node : mesh.nodes)
+			{
+			   System.out.println( node.getX() + " " + node.getY() + " = " + node.material.toString() );
+				materialWriter.println(Divider.formatNumberS(node.material.getValue())); 
+			}
+			
+		}
+
+		/**
 		 * Saves elements indexes to given stream
 		 * Format is like this:
 		 * el1_node1_number el1_node2_number el1_node3_number

@@ -10,9 +10,9 @@ import fem.common.IFemSettings;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Paint;
-import java.util.Iterator;
 
 import fem.geometry.Dot;
+import fem.geometry.DotMaterial;
 import fem.geometry.Triangle;
 
 /**
@@ -21,6 +21,15 @@ import fem.geometry.Triangle;
  * @version 
  */
 public class Element extends Triangle {
+	 private int index; //index in array of elements in mesh
+    private Mesh mesh;
+    private boolean valid = true;
+
+    public static double INSIDE_ANGLE = Math.toRadians(1);
+    public static double OUTER_UPGRADE_ANGLE = Math.toRadians(20);
+
+    public static Color elementNumberColor = new Color(0, 100, 0);
+	 public static Color airElementColor    = new Color(43, 127, 176);
 
 		/** Creates new Element
 		 * and adds it to mesh of given node
@@ -34,17 +43,27 @@ public class Element extends Triangle {
 				mesh.elements.add(this);
     }
 
+	 private void drawSide( Node start, Node end, Graphics2D g ){
+	     Color col = g.getColor();
+		  if( start.material == DotMaterial.AIR || end.material == DotMaterial.AIR )
+            g.setPaint(airElementColor);
+
+        g.drawLine( mesh.panel.xsi( start.getX() ), mesh.panel.ysi( start.getY() ),
+                    mesh.panel.xsi( end.getX() ),   mesh.panel.ysi( end.getY() )    );
+        g.setPaint(col);
+	 }
     public void draw(Graphics2D g)
     {
                     Node A = getNodes()[0];
                     Node B = getNodes()[1];
                     Node C = getNodes()[2];
                     MeshPanel p = mesh.panel;
-                    g.drawLine( p.xsi(A.getX()), p.ysi(A.getY()), p.xsi(B.getX()), p.ysi(B.getY()));
-                    g.drawLine( p.xsi(B.getX()), p.ysi(B.getY()), p.xsi(C.getX()), p.ysi(C.getY()));
-                    g.drawLine( p.xsi(C.getX()), p.ysi(C.getY()), p.xsi(A.getX()), p.ysi(A.getY()));
+						  
 
-//				g.drawString(mesh.elements.indexOf(this)+"" , p.xsi( centralDot().x ), p.ysi( centralDot().y  ));
+						  drawSide(A, B, g);
+                    drawSide(B, C, g);
+                    drawSide(C, A, g);
+
                     if(fem.divider.Divider.getDivider().getPreferences().isShowMeshElementNumbers())
                             {
                                     Color col = g.getColor();
@@ -117,37 +136,32 @@ public class Element extends Triangle {
 
 
     /**
-     *@returns on success element that borders with this and is opposite to node,
-     *on failure null
+     * @returns (on success) element that borders with this and is opposite to node,
+     * @returns (on failure) null
      */
     public Element oppositeOf(Node node)
     {
-                    Node node1;
-                    Node node2;
-                    if(getNodes()[0]!=node)
-                    {
-                                    node1=getNodes()[0];
-                                    if(getNodes()[1]!=node)
-                                                    node2=getNodes()[1];
-                                    else
-                                                    node2=getNodes()[2];//if getNodes()[1]==node
-                    }
-                    else //getNodes()[0]==node
-                    {
-                                    node1=getNodes()[1];
-                                    node2=getNodes()[2];
-                    }
-
-                    Element el;
-                    for(Iterator i=node1.elements.iterator(); i.hasNext(); )
-                    {
-                                    el = (Element)i.next();
-                                    if(el==this) continue;
-//						if(el.hasNode(node2)&&el.valid)
-                                    if(el.hasNode(node2))
-                                                    return el;
-                    }
-                    return null;
+        Node node1;
+        Node node2;
+        if(getNodes()[0]!=node)
+        {
+            node1=getNodes()[0];
+            if(getNodes()[1]!=node)
+                node2=getNodes()[1];
+            else
+                node2=getNodes()[2];
+        }
+        else //getNodes()[0]==node
+        {
+            node1=getNodes()[1];
+            node2=getNodes()[2];
+        }
+        
+        for(Element el : node1.elements) {
+            if(el==this)          continue;
+            if(el.hasNode(node2)) return el;
+        }
+        return null;
     }
 
     /**
@@ -290,33 +304,23 @@ public class Element extends Triangle {
 
     /**
      * Split element info smaller elements if needed
-     * @returns two-dimension array: result[0] has removed elements, 
      * result[1] has added elements 
      * If these was no upgrade returns zero-size array
+     * @returns two-dimension array: result[0] has removed elements, 
      */
     public boolean upgrade()
     {
-//				System.out.println("shrink= "+areaShrink());
-                    //is upgrade needed?
-                    if(valid && ((getArea() < mesh.settings.maxArea*areaShrink() && 
-//				if((area() < mesh.settings.maxArea && 
-//						angle(minAngle()) > mesh.settings.maxAngle
-                                    getAngleValue(getMinAngleIndex()) > mesh.settings.getMinAngle()
-                                    ) ||
-                                    getArea() < mesh.settings.minArea) )
-                                    return false; //area OK
-
-
-/*				if( getNodes()[0].distance(circleCenter()) < mesh.settings.maxRadius)
-                                    return false;
-*/				
-                    if(!isInside(circleCenter())||
-                                    getAngleValue(getMinAngleIndex()) < OUTER_UPGRADE_ANGLE
-                    )
-                                    return outerUpgrade();
-                    else
-                                    return innerUpgrade();
-                    //return true;
+       boolean isNeedUpgrade = valid && ( 
+               getArea() < mesh.settings.maxArea*areaShrink() 
+               && getAngleValue(getMinAngleIndex()) > mesh.settings.getMinAngle());
+       if( isNeedUpgrade || getArea() < mesh.settings.minArea)
+         return false; //area OK
+		
+       boolean isOuter = !isInside(circleCenter()) || getAngleValue(getMinAngleIndex()) < OUTER_UPGRADE_ANGLE;
+       if( isOuter )
+           return outerUpgrade();
+       else
+           return innerUpgrade();
     }
 
     /**
@@ -324,17 +328,17 @@ public class Element extends Triangle {
      */
     private boolean innerUpgrade()
     {
-                    Dot cdot = getCentralDot();
-                    Node cnode = new Node(mesh, cdot);
-
-                    Triangle el1 = new Element(getNodes()[0], getNodes()[1], cnode);
-                    Triangle el2 = new Element(getNodes()[1], getNodes()[2], cnode);
-                    Triangle el3 = new Element(getNodes()[2], getNodes()[0], cnode);
-                    this.delete();
-
-                    cnode.lawson();
-
-                    return true;
+        Dot cdot = getCentralDot();
+        Node cnode = new Node(mesh, cdot);
+        
+        Triangle el1 = new Element(getNodes()[0], getNodes()[1], cnode);
+        Triangle el2 = new Element(getNodes()[1], getNodes()[2], cnode);
+        Triangle el3 = new Element(getNodes()[2], getNodes()[0], cnode);
+        this.delete();
+        
+        cnode.lawson();
+        
+        return true;
     }
 
     /**
@@ -342,49 +346,47 @@ public class Element extends Triangle {
      */
     private boolean outerUpgrade()
     {
-                    int man = getMaxAngleIndex(); //maxAngle node
-                    Node maxN = getNodes()[man];
+       int man = getMaxAngleIndex(); // index of corner with biggest angle
+       Node maxN = getNodes()[man];
 
-                    int n1 = getOtherCorner1Index(man);
-                    int n2 = getOtherCorner2Index(man);
-                    Node N1 = getNodes()[n1];
-                    Node N2 = getNodes()[n2];
+       int n1 = getOtherCorner1Index(man);
+       int n2 = getOtherCorner2Index(man);
+       Node N1 = getNodes()[n1];
+       Node N2 = getNodes()[n2];
 
-                    //opposite element
-                    Element op4 = this.oppositeOf(getNodes()[man]);
-                    if(op4!=null)
-                    {
-                            int op4max = op4.getMaxAngleIndex(); Node op4Nmax = op4.getNodes()[op4max];
-                            int op4_1 =  op4.getOtherCorner1Index(op4max); Node op4N1 = op4.getNodes()[op4_1];
-                            int op4_2 = op4.getOtherCorner2Index(op4max); Node op4N2 = op4.getNodes()[op4_2];
-                            //check if we won't make the opposite element worse
-                            if( op4Nmax.angle(op4N1, op4N2)> (3*Math.PI/4) && 
-                                    (op4Nmax == N1 || op4Nmax == N2) ) return false; //not upgraded 
-                    }
+       // Get opposite element that: 1) border with this element, 2) didn't include 'maxN' node
+       Element op4 = this.oppositeOf(getNodes()[man]);
+       if(op4!=null) {
+          int op4max = op4.getMaxAngleIndex(); Node op4Nmax = op4.getNodes()[op4max];
+          int op4_1 =  op4.getOtherCorner1Index(op4max); Node op4N1 = op4.getNodes()[op4_1];
+          int op4_2 = op4.getOtherCorner2Index(op4max); Node op4N2 = op4.getNodes()[op4_2];
+          //check if we won't make the opposite element worse
+          if( op4Nmax.angle(op4N1, op4N2)> (3*Math.PI/4) && 
+                (op4Nmax == N1 || op4Nmax == N2) ) return false; //not upgraded 
+       }
 
-                    Node newNode = new Node(getNodes()[n1], getNodes()[n2], 0.5,  op4==null?true:false ); 
+       Node newNode = new Node(getNodes()[n1], getNodes()[n2], 0.5,  op4==null?true:false ); 
 
-                    Triangle el1 = new Element(newNode, getNodes()[n2], getNodes()[man]);
-                    Triangle el2 = new Element(newNode, getNodes()[man], getNodes()[n1]);
+       Triangle el1 = new Element(newNode, getNodes()[n2], getNodes()[man]);
+       Triangle el2 = new Element(newNode, getNodes()[man], getNodes()[n1]);
 
-                    this.delete();
+       this.delete();
 
-                    if(op4!=null) //we have opposite element, let's split it too
-                    {
-                                    Node op4node = op4.getThirdNode(getNodes()[n1], getNodes()[n2]);
+       if(op4!=null){ //we have opposite element, let's split it too
+          Node op4node = op4.getThirdNode(getNodes()[n1], getNodes()[n2]);
 
-                                    Triangle op4el1 = new Element(op4node, getNodes()[n2], newNode);
-                                    Triangle op4el2 = new Element(newNode, getNodes()[n1], op4node);
+          Triangle op4el1 = new Element(op4node, getNodes()[n2], newNode);
+          Triangle op4el2 = new Element(newNode, getNodes()[n1], op4node);
 
-                                    op4.delete();
+          op4.delete();
 //						op4node.lawson();
 
-                    }
+          }
 
 //				maxN.lawson();
 
-                    newNode.lawson();
-                    return true;
+       newNode.lawson();
+       return true;
     }
 
     /**
@@ -430,14 +432,4 @@ public class Element extends Triangle {
     {
             return (Node[])getCorners();
     }
-		
-    private int index; //index in array of elements in mesh
-    private Mesh mesh;
-    private boolean edge = false;
-    private boolean valid = true;
-
-    public static double INSIDE_ANGLE = Math.toRadians(1);
-    public static double OUTER_UPGRADE_ANGLE = Math.toRadians(20);
-
-    public static Color elementNumberColor=new Color(0, 100, 0);
 }//end class

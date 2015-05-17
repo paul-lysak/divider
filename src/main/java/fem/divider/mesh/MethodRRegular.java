@@ -14,6 +14,7 @@ import fem.geometry.Triangle;
 
 /**
  * @author gefox
+ * @author Nikolay Konovalow
  */
 public class MethodRRegular extends MethodAbstract {
 
@@ -60,7 +61,7 @@ public class MethodRRegular extends MethodAbstract {
 
 		//TRIANGULATION
 		//collect information about figure
-		Contour contour=(Contour)figure_.contours.get(0);
+		Contour contour=(Contour)figure_.getContourByIndex(0);
 		fem.divider.figure.Node node1, node2, node3, 
 			bl_n=null, br_n=null, tl_n=null, tr_n=null;//bottom&top, left&right;
 		fem.divider.figure.Segment left_s=null, right_s=null, top_s=null, bottom_s=null;
@@ -196,8 +197,8 @@ public class MethodRRegular extends MethodAbstract {
 	 */
 	public String test(Figure figure_) {
 		String error_message=Messages.getString("MethodRRegular.Rectangle_required_3");  //$NON-NLS-1$
-		if(figure_.contours.size()!=1) return error_message;  
-		Contour contour=(Contour)figure_.contours.get(0);
+		if(figure_.contoursCount()!=1) return error_message;  
+		Contour contour=(Contour)figure_.getContourByIndex(0);
 		if(contour.nodes.size()!=4) return error_message;
 		fem.divider.figure.Node node1, node2, node3, node4;
 		node1=(fem.divider.figure.Node)contour.nodes.get(0);
@@ -229,15 +230,6 @@ public class MethodRRegular extends MethodAbstract {
 		return progress;
 	}
 
-
-
-
-
-	
-	
-
-	
-	
 	private double getExcessiveSquare()
 	{
 		double square=0.0, sq1;

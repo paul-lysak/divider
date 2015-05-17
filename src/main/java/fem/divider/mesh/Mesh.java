@@ -18,6 +18,7 @@ import fem.divider.figure.CZone;
 import fem.divider.figure.Contour;
 import fem.divider.figure.Figure;
 import fem.geometry.Dot;
+import fem.geometry.DotMaterial;
 import fem.geometry.Triangle;
 
 /**
@@ -26,6 +27,12 @@ import fem.geometry.Triangle;
  * @version 
  */
 public class Mesh {
+	public static  Color cMesh = new Color(0, 0, 0); //black
+   Figure figure=null;
+   MeshPanel panel;
+   MeshSettings settings;
+   List<Node> nodes = new ArrayList<Node>(30);
+   List<Element> elements = new ArrayList<Element>(60);
 
 	/** Creates new Mesh */
     Mesh() {
@@ -45,17 +52,11 @@ public class Mesh {
 		
 		public void draw(Graphics2D g)
 		{
-				g.setPaint(meshColor);
-				Node node;
-				for(Iterator i=nodes.iterator(); i.hasNext(); )
-				{
-						node = (Node)i.next();
+				g.setPaint(cMesh);
+				for(Node node : nodes) {
 						node.draw(g);
 				}
-				Element el;
-				for(Iterator i=elements.iterator(); i.hasNext(); )
-				{
-						el = (Element)i.next();
+				for(Element el : elements)	{
 						el.draw(g);
 				}
 		}
@@ -95,7 +96,7 @@ public class Mesh {
 		 */
 		public void forget(Node node)
 		{
-				nodes.remove(node);;
+				nodes.remove(node);
 		}
 		
 		/**
@@ -124,7 +125,7 @@ public class Mesh {
 						if(el2==null) continue;
 //						System.out.println("el2="+elements.indexOf(el2));
 						if(!el2.hasNode(n2)) continue;
-						//here we have neibours el1 and el2, that contains n1 and n2 respectively
+						//here we have neighbors el1 and el2, that contains n1 and n2 respectively
 						if( el1.swapDiagonalWith(el2) )
 						{
 								return true;
@@ -171,10 +172,8 @@ public class Mesh {
 		
 		public Element findElementThatCovers(Dot dot)
 		{
-				Element el;
-				for(Iterator i=elements.iterator(); i.hasNext(); )
+				for(Element el : elements)
 				{
-						el=(Element)i.next();
 						if(el.isInside(dot)) 
 								return el;
 				}
@@ -187,7 +186,7 @@ public class Mesh {
 		}
 		
 		/**
-		 *Update index of each node so tha t index of node equals its place in list
+		 *Update index of each node so that index of node equals its place in list
 		 */
 		public void updateNodesIndexes()
 		{
@@ -228,13 +227,9 @@ public class Mesh {
 			
 			//Collect CZones:
 			//for all contours
-			 for(Iterator<fem.divider.figure.Contour> ic=figure.contours.iterator();ic.hasNext();)
-			 {
-			 	fem.divider.figure.Contour contour = ic.next();
+			 for( fem.divider.figure.Contour contour : figure.getContours() ) {
 			 	//for all nodes(segments) of contour
-			 	for(Iterator in=contour.nodes.iterator();in.hasNext();)
-			 	{
-			 		fem.divider.figure.Node fnode = (fem.divider.figure.Node)in.next();
+			 	for( fem.divider.figure.Node fnode : contour.nodes ) {
 			 		fem.divider.figure.Segment seg = fnode.getNextSegment();
 			 		//add all CZones from this segment to our list
 			 		czones.addAll(seg.getCZones());
@@ -343,11 +338,4 @@ public class Mesh {
 				return elements.size();
 		}
 
-		public static Color meshColor = new Color(0x0,0x0,0x0); //black
-		
-		Figure figure=null;
-		MeshPanel panel;
-		MeshSettings settings;
-	  	List<Node> nodes = new ArrayList(30);
-		List<Element> elements = new ArrayList(60);
 }

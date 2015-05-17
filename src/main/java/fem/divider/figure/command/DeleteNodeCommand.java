@@ -39,8 +39,8 @@ public class DeleteNodeCommand extends AbstractCommand {
 	 */
 	void undo() {
 		Contour contour=node.getContour();
-		if( figure.contours.indexOf( contour )== -1)
-			figure.contours.add( contour );
+		if( ! figure.haveContour(contour) )
+			figure.addContour( contour );
 		contour.restoreNode( node );
 		figure.redraw();
 	}

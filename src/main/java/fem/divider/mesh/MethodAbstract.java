@@ -4,7 +4,8 @@
 package fem.divider.mesh;
 
 /**
-*Every meshdown method has to implement this interface
+* Divide figure's area by mesh
+* Every meshdown method has to implement this interface
 * @author gefox
 */
 public abstract class MethodAbstract {

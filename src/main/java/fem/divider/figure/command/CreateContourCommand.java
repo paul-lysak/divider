@@ -33,7 +33,7 @@ public class CreateContourCommand extends AbstractCommand {
 		Node node = Node.interactiveCreate();
 		if(node==null) return false;
 		contour.addFirstNode(node);
-		figure.contours.add(contour);
+		((Figure) figure).addContour(contour);
 		done=true;
 		contour_stateAfter=contour;
 		return true;
@@ -55,7 +55,7 @@ public class CreateContourCommand extends AbstractCommand {
 	 * @see divider.figure.command.AbstractCommand#undo()
 	 */
 	void undo() {
-		figure.contours.remove(contour_stateAfter);
+		figure.deleteContour(contour_stateAfter);
 		figure.redraw();
 	}
 
@@ -63,7 +63,7 @@ public class CreateContourCommand extends AbstractCommand {
 	 * @see divider.figure.command.AbstractCommand#redo()
 	 */
 	void redo() {
-		figure.contours.add(contour_stateAfter);		
+		figure.addContour(contour_stateAfter);		
 		figure.redraw();
 	}
 

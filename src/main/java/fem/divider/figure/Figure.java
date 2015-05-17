@@ -13,10 +13,9 @@ import java.util.List;
 
 import fem.divider.figure.command.CommandStack;
 
-/**
- *
- * @author  gefox
- * @version 
+/** Basic 
+ * @author gefox
+ * @author Nikolay Konovalow ('contours' access methods)
  */
 public class Figure {
 
@@ -49,75 +48,89 @@ public class Figure {
 				return null;
 		}
 		
-		public void deleteContour(Contour contour)
-		{
-				contours.remove(contour);
+		//=========== Public access methods for field 'contours' ===========
+		/** Examine if  @contour is incorporated in this figure*/
+      public boolean haveContour(Contour contour) {
+         return contours.indexOf( contour )== -1;
+      }
+		/** Examine if figure is empty (have no contours) */
+      public boolean isNonEmpty() {
+         return !contours.isEmpty();
+      } 
+		/** Delete  @contour from this figure */
+		public void deleteContour(Contour contour) {
+		   contours.remove(contour);
+      }
+		/** @return List of contours, that compose this figure */
+		public List<Contour> getContours() {
+         return contours;
+      }
+      public void setContours(List<Contour> contours_) {
+         contours = contours_;
+      }
+      public void addContour(Contour contour) {
+         contours.add(contour);
+      }
+		public int contoursCount() {
+		   return contours.size();
 		}
+		public Contour getContourByIndex(int index) {
+		   return contours.get(index);
+		}
+		//=========================== end ===============================
+   
 		
 		public fem.divider.RectangleArea calculateBounds()
 		{
-				if(contours.size()==0) return null; //if there's no contours yet
+				if(contoursCount()==0) return null; //if there's no contours yet
 				fem.divider.RectangleArea area = ((Contour)contours.get(0)).calculateBounds();
-				for(int i=1;i<contours.size();i++)
+				for(int i=1;i<contoursCount();i++)
 				{
 						area.include( ((Contour)contours.get(i)).calculateBounds() );
 				}
 				return area;
 		}
 		
-		public fem.divider.mesh.MeshSettings getMeshSettings()
-		{
-				return meshSettings;
-		}
-		
-		public void setMeshSettings(fem.divider.mesh.MeshSettings settings)
-		{
+		public fem.divider.mesh.MeshSettings getMeshSettings() {
+		      return meshSettings;
+		}	
+		public void setMeshSettings(fem.divider.mesh.MeshSettings settings) {
 				meshSettings = settings;
 		}
-		
-		/**Redraw figure on panel
-		 */
-		public void redraw()
-		{
+		/** Redraw figure on panel */
+		public void redraw()	{
 				panel.redraw();
 		}
-
-		/**Redraw mesh that coresponds to this figure
-		 */
-		public void redrawMesh()
-		{
-			if(mesh!=null)
-				{mesh.redraw();}
-		}
 		
-		
-		public void setMesh(fem.divider.mesh.Mesh _mesh)
-		{
+		/**Redraw mesh that corresponds to this figure */
+		public void redrawMesh() {
+			if(mesh!=null) mesh.redraw();
+		}		
+		public void setMesh(fem.divider.mesh.Mesh _mesh) {
 			mesh=_mesh;
 		}
-		
-		public fem.divider.mesh.Mesh getMesh()
-		{
+		public fem.divider.mesh.Mesh getMesh()	{
 			return mesh;
 		}
 		
 		/**
-		 *Get CZones, that belong to groupName group, no more than maxNum 
-		 * if maxNum=0, quantiry not limited
-		 * if groupName=null, group name not checked
-		 * so, if groupName=null and maxNum=1, method will return one CZone (the first one it finds)
+		 * @return -CZones, that belong to @groupName group, no more than @maxNum. 
+		 * <br>- First one it finds <i>(if groupName=null and maxNum=1)</i> 
+		 * 
+		 * @param maxNum if <b>0</b>, quantity not limited
+		 * @param groupName if <b>null</b>, group name not checked 
 		 */
-		public ArrayList getCZones(String groupName, int maxNum)
+		public ArrayList<CZone> getCZones(String groupName, int maxNum)
 		{
 			int cont_i, segm_i, cz_i, cont_n, segm_n, cz_n,  num;
 			Contour cont;
 			Segment segm;
 			Node node;
-			ArrayList czones;
-			ArrayList result = new ArrayList(1);
+			ArrayList<CZone> czones;
+			ArrayList<CZone> result = new ArrayList<CZone>(1);
 			CZone czone;
 			
-			cont_n= contours.size();
+			cont_n= contoursCount();
 			num=0;
 			contours_loop: for(cont_i=0; cont_i<cont_n; cont_i++) //for each contour
 			{
@@ -182,22 +195,11 @@ public class Figure {
 		
 		private fem.divider.mesh.Mesh mesh;
 		public FigurePanel panel;
-		public List<Contour> contours = new ArrayList(5);
-
-		public List<Contour> getContours() {
-			return contours;
-		}
-
-		public void setContours(List<Contour> contours) {
-			this.contours = contours;
-		}
+		private List<Contour> contours = new ArrayList<Contour>(5);
 
 		//here are stored all commands of figure editing 
 		CommandStack commandStack = new CommandStack(); 
 		
 		private fem.divider.mesh.MeshSettings meshSettings;
 		private boolean editable=true;
-
-
-
 }

@@ -12,15 +12,11 @@ public class PackedMeshStreamer extends MultifileMeshStreamer {
 
     //TODO: use IPmdSettings
 	private static final String SECTION_TAG_SETTINGS = "[settings]";
-
 	private static final String SECTION_TAG_INDEXES = "[inds]";
-	
 	private static final String SECTION_TAG_COORDINATES = "[koor]";
-
 	private static final String SECTION_TAG_CONTACTS = "[contact]";
-
 	private static final String SECTION_TAG_FORCES = "[force]";
-	
+	private static final String SECTION_TAG_MATERIAL = "[material]";
 	
 	private static final int DEFAULT_BUFFER_SIZE = 256;
 	
@@ -28,7 +24,7 @@ public class PackedMeshStreamer extends MultifileMeshStreamer {
 	private static final String PROPERTY_NELEMENTS = "n_elements="; 
 	private static final String PROPERTY_NCONTACTS = "n_contacts="; 
 	private static final String PROPERTY_NFORCES = "n_forces="; 
-	
+
 	
 	public void save(Mesh mesh, String fileBasename) throws Exception {
 		FileOutputStream fileStream;
@@ -49,6 +45,28 @@ public class PackedMeshStreamer extends MultifileMeshStreamer {
 		writeIndexesSection(mesh, out);
 		writeCoordinatesSection(mesh, out);
 		writeInfluencesSections(iContext, out);
+		writeMaterialSections(mesh, out);
+	}
+
+	private InfluencesContext prepareInfluences(Mesh mesh) throws Exception
+	{
+		StringWriter contactsSWriter = new StringWriter(DEFAULT_BUFFER_SIZE);
+		StringWriter forcesSWriter = new StringWriter(DEFAULT_BUFFER_SIZE);
+		
+		PrintWriter contactsPWriter = new PrintWriter(contactsSWriter);
+		PrintWriter forcesPWriter = new PrintWriter(forcesSWriter);
+		
+		int[] counts = saveInfluence(mesh, contactsPWriter, forcesPWriter);
+		
+		InfluencesContext iContext = new InfluencesContext();
+		iContext.contactsText = contactsSWriter.toString();
+		iContext.forcesText = forcesSWriter.toString();
+		if(counts.length>0)		
+			iContext.contactsCount = counts[0];
+		if(counts.length>1)		
+			iContext.forcesCount = counts[1];
+		
+		return iContext;
 	}
 
 	private void writeSettingsSection(Mesh mesh, InfluencesContext iContext, PrintWriter out) throws Exception
@@ -72,36 +90,19 @@ public class PackedMeshStreamer extends MultifileMeshStreamer {
 		saveCoords(mesh, out);
 	}
 
-	private InfluencesContext prepareInfluences(Mesh mesh) throws Exception
-	{
-		StringWriter contactsSWriter = new StringWriter(DEFAULT_BUFFER_SIZE);
-		StringWriter forcesSWriter = new StringWriter(DEFAULT_BUFFER_SIZE);
-		
-		PrintWriter contactsPWriter = new PrintWriter(contactsSWriter);
-		PrintWriter forcesPWriter = new PrintWriter(forcesSWriter);
-		
-		int[] counts = saveInfluence(mesh, contactsPWriter, forcesPWriter);
-		
-		InfluencesContext iContext = new InfluencesContext();
-		iContext.contactsText = contactsSWriter.toString();
-		iContext.forcesText = forcesSWriter.toString();
-		if(counts.length>0)		
-			iContext.contactsCount = counts[0];
-		if(counts.length>1)		
-			iContext.forcesCount = counts[1];
-		
-		return iContext;
-	}
-	
 	private void writeInfluencesSections(InfluencesContext iContext, PrintWriter out) throws Exception
 	{
-		
 		out.println(SECTION_TAG_CONTACTS);
 		out.println(iContext.contactsText);
 		out.println(SECTION_TAG_FORCES);
 		out.println(iContext.forcesText);
 	}
-	
+
+	private void writeMaterialSections(Mesh mesh, PrintWriter out) throws Exception
+	{
+		out.println(SECTION_TAG_MATERIAL);
+		saveMaterial(mesh, out);
+	}
 
 //	@Override
 //	public int[] saveInfluence(Mesh mesh, PrintWriter contacts_out,

@@ -147,7 +147,7 @@ public class Segment {
 	/**
 	 * Returns czones list "as is"
 	 */
-	public ArrayList getCZones() {
+	public ArrayList<CZone> getCZones() {
 		return czones;
 	}
 
@@ -443,7 +443,7 @@ public class Segment {
 
 
 	JPopupMenu popupMenu;
-	ArrayList czones = new ArrayList();
+	ArrayList<CZone> czones = new ArrayList<CZone>();
 	static CZonesEditDialog czone_dialog = new CZonesEditDialog();
 	static SegmentGeometryEditor geometryEditor = new SegmentGeometryEditor();
 }

@@ -28,7 +28,7 @@ import fem.divider.mesh.MeshPanel;
 import fem.divider.mesh.MethodAbstract;
 
 /**
- *
+ * 
  * @author  Paul Lysak
  */
 public class DividerUI extends javax.swing.JFrame {
@@ -165,6 +165,7 @@ public class DividerUI extends javax.swing.JFrame {
 		editMenu.addSeparator();
 		editMenu.add(divider.createContourAction);
 		editMenu.add(divider.editWorldAction);
+		editMenu.add(divider.createAirFrameAction);
 		editMenu.addSeparator();
 		editMenu.add(divider.editInfluenceAction);
 		editMenu.add(divider.editPreferencesAction);
@@ -193,6 +194,7 @@ public class DividerUI extends javax.swing.JFrame {
     private void initToolbar()
     {
 		toolBar.add(divider.createContourAction);
+		toolBar.add(divider.createAirFrameAction);
 		toolBar.addSeparator();
 		toolBar.add(divider.undoAction);
 		toolBar.add(divider.redoAction);

@@ -7,6 +7,7 @@
 package fem.divider.figure;
 
 import fem.divider.*;
+import fem.geometry.DotMaterial;
 
 import java.io.*;
 import java.util.*;
@@ -90,7 +91,8 @@ public class DfigFormat extends AbstractFormat {
 							org.w3c.dom.Element ne = (org.w3c.dom.Element) nn;
 							double x = Double.parseDouble(ne.getAttribute("x")); //$NON-NLS-1$
 							double y = Double.parseDouble(ne.getAttribute("y")); //$NON-NLS-1$
-							Node node = new Node(x, y);
+							DotMaterial m = DotMaterial.valueOf(ne.getAttribute("material"));
+							Node node = new Node(x, y, m);
 							contour.rawAppend(node);
 							// put end of previous segment (if exists) to new
 							// node
@@ -182,12 +184,12 @@ public class DfigFormat extends AbstractFormat {
 					if (contour.nodes.size() == 0)
 						continue; // no
 					// add contour to figure
-					fig.contours.add(contour);
+					fig.addContour(contour);
 					// TODO: delete next line
 					contour.nodes.add(contour.nodes.get(0)); // TEMPORARY
 					// ADD node to end of contour
 					// (done to enclose segments)
-					Iterator i = contour.nodes.iterator();
+					Iterator<Node> i = contour.nodes.iterator();
 					Segment segment;
 					Node n1;
 					Node n2;
@@ -279,19 +281,18 @@ public class DfigFormat extends AbstractFormat {
 		Element czoneElement;
 
 		// append contours to figure
-		for (Iterator ci = fig.contours.iterator(); ci.hasNext();) {
-			Contour contour = (Contour) ci.next();
+		for( Contour contour : fig.getContours() ) {
 			contourElement = doc.createElement("Contour"); //$NON-NLS-1$
 			contourElement.setAttribute("positive", "" + contour.isPositive()); //$NON-NLS-1$ //$NON-NLS-2$
 
 			figureElement.appendChild(contourElement);
 
 			// append nodes to contour
-			for (Iterator ni = contour.nodes.iterator(); ni.hasNext();) {
-				Node node = (Node) ni.next();
+			for( Node node : contour.nodes ) {
 				nodeElement = doc.createElement("Node"); //$NON-NLS-1$
 				nodeElement.setAttribute("x", Double.toString(node.x)); //$NON-NLS-1$
 				nodeElement.setAttribute("y", Double.toString(node.y)); //$NON-NLS-1$
+				nodeElement.setAttribute("material", node.material.name());
 
 				Segment segment = node.getNextSegment();
 				// append czones

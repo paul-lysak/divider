@@ -37,9 +37,9 @@ public class Contour {
 				else
 						graphics.setPaint(negativeColor);
 						
-				for(Iterator i=nodes.iterator(); i.hasNext(); )
+				for(Node node : nodes)
 				{
-						((Node)i.next()).draw(graphics);
+						node.draw(graphics);
 				}
 		}
 		
@@ -66,7 +66,7 @@ public class Contour {
 				Node firstNode;
 				if(nodes.size()>0)//if we have something already in contour
 				{
-						lastNode = (Node)nodes.get(nodes.size());
+						lastNode = (Node)nodes.get(nodes.size() - 1);
 						Segment lastSegment = lastNode.getNextSegment();
 						lastSegment.setNewEnd(node);//new end on new node
 						firstNode = (Node)nodes.get(0);

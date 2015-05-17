@@ -42,7 +42,7 @@ public class CreateAirFrameCommand extends AbstractCommand {
 	   CreateAirFrameDialog dialog = new CreateAirFrameDialog(figure, ui);
 	   
 	   if( dialog.getCountOfFrameDots() == 0 ){
-	      ui.setStatusbarText("Can't generate air frame: programm have no dots for it");
+	      ui.setStatusbarText("Can't generate air frame: program have no dots for it");
 	      return false;
 	   }
 
@@ -57,6 +57,10 @@ public class CreateAirFrameCommand extends AbstractCommand {
 	   
       return done;
 	}
+
+	@Override
+	public boolean isUndoable() {return true;}
+
    @Override
    void undo() {
       figure.deleteContour(contour_stateAfter);

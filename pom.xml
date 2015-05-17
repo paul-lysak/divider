@@ -13,11 +13,11 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-			<version>2.5.1</version>
+				<version>2.5.1</version>
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>divider.Divider</mainClass>
+							<mainClass>fem.divider.Divider</mainClass>
 							<packageName>Divider</packageName>
 						</manifest>
 					</archive>
@@ -28,7 +28,7 @@
 			<artifactId>exec-maven-plugin</artifactId>
 			<version>1.4.0</version>
 			<configuration>
-				<mainClass>divider.Divider</mainClass>
+				<mainClass>fem.divider.Divider</mainClass>
 				<workingDirectory>./target</workingDirectory>
 			</configuration>
 			</plugin>

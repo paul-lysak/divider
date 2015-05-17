@@ -1,6 +1,7 @@
 package fem.geometry;
 
 import fem.common.IFemSettings;
+import fem.geometry.DotMaterial;
 
 public class Triangle {
 
@@ -189,12 +190,16 @@ public class Triangle {
 
 	/**
 	 * Get dot that is center of triangle
-	 * 
+	 * Triangle is "outer" if has 'AIR'-material corner
+	 * Central dot of "outer" triangle is 'AIR'
 	 * @return
 	 */
 	public Dot getCentralDot() {
-			return new Dot( (getCorners()[0].x+getCorners()[1].x+getCorners()[2].x)/3,
-											(getCorners()[0].y+getCorners()[1].y+getCorners()[2].y)/3);
+		Dot[] ds = getCorners();
+		if( ds[0].material == DotMaterial.AIR || ds[1].material == DotMaterial.AIR || ds[2].material == DotMaterial.AIR )
+			return new Dot( (ds[0].x+ds[1].x+ds[2].x)/3, (ds[0].y+ds[1].y+ds[2].y)/3, DotMaterial.AIR);
+		else
+			return new Dot( (ds[0].x+ds[1].x+ds[2].x)/3, (ds[0].y+ds[1].y+ds[2].y)/3, DotMaterial.FIGURE);
 	}
 
 
@@ -220,7 +225,7 @@ public class Triangle {
 
 
 	/**
-	 * Returns number of minimal angle
+	 * @returns number of minimal angle
 	 */
 	public int getMinAngleIndex() {
 			if( getAngleValue(0) < getAngleValue(1) && getAngleValue(0) < getAngleValue(2) )
@@ -232,7 +237,7 @@ public class Triangle {
 
 
 	/**
-	 * Returns index of maximal angle
+	 * @returns index of corner with maximal angle
 	 */
 	public int getMaxAngleIndex() {
 			if( getAngleValue(0) > getAngleValue(1) && getAngleValue(0) > getAngleValue(2) )

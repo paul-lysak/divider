@@ -8,7 +8,6 @@ package fem.geometry;
 
 import fem.common.IFemSettings;
 
-
 /**
  * It's a dot on a plane Superclass of Node
  * 
@@ -18,8 +17,8 @@ public class Dot {
 
     //TODO: make private
 	public double y;
-
 	public double x;
+	public DotMaterial material;
 
 	/**
 	 * Creates new Dot with specified coordinates
@@ -27,13 +26,18 @@ public class Dot {
 	public Dot(double x_, double y_) {
 		x = x_;
 		y = y_;
+		material = DotMaterial.FIGURE;
+	}
+	public Dot(double x_, double y_, DotMaterial material_) {
+		this(x_, y_);
+		material = material_;
 	}
 
 	/**
 	 * Creates new Dot with coordinates taken from _dot
 	 */
 	public Dot(Dot _dot) {
-		this(_dot.x, _dot.y);
+		this(_dot.x, _dot.y, _dot.material);
 	}
 
 	/**
@@ -64,6 +68,13 @@ public class Dot {
 		y = y_;
 	}
 
+	/**
+	 * Change material of this dot
+	 * @param material_ - new material
+	 */
+	public void setMaterial(DotMaterial material_){
+		material = material_;
+	}
 	/**
 	 * Change dot coordinates to those from given value
 	 * 

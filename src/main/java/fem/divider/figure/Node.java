@@ -68,10 +68,18 @@ public class Node extends Dot// implements ContourComponent
 	 */
 	static public Node interactiveCreate()
 	{
-			Node node = new Node(0,0);
+			Node node = new Node(0.0, 0.0);
 			if(!node.edit())	return null;
 			return node;
 	}
+	static public Node interactiveCreate(double x_, double y_, DotMaterial m_)
+	{
+			Node node = new Node(x_, y_, m_);
+			if(!node.edit())	return null;
+			return node;
+	}
+
+
 	
 	public void draw(Graphics2D graphics)
 	{

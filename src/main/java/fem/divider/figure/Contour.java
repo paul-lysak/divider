@@ -318,33 +318,14 @@ public class Contour {
 			return list;
 		}
 
-		public List<Node> getNodes() {
-			return nodes;
-		}
 
-
-		public void setNodes(List<Node> nodes) {
-			this.nodes = nodes;
-		}
-
-
-		public RectangleArea getBounds() {
-			return bounds;
-		}
-
-
-		public void setBounds(RectangleArea bounds) {
-			this.bounds = bounds;
-		}
-
-
-		public void setFigure(Figure figure) {
-			this.figure = figure;
-		}
-		
-		public Contour getThisContour() {return this;}
-
-		public Figure getFigure() { return figure;}
+		public List<Node>    getNodes()                      { return nodes; }
+		public void          setNodes(List<Node> nodes)      { this.nodes = nodes; }
+		public RectangleArea getBounds()                     { return bounds;  }
+		public void          setBounds(RectangleArea bounds) { this.bounds = bounds; }
+		public void          setFigure(Figure figure)        { this.figure = figure; }
+		public Contour       getThisContour()                {return this;}
+		public Figure        getFigure()                     { return figure;}
 		
 		static ContourEditDialog dialog = new ContourEditDialog();
 		
@@ -386,35 +367,32 @@ public class Contour {
 
 
 
-		 class ContourEditDialog extends fem.divider.AbstractEditingDialog
-		{
-				ContourEditDialog()
-				{
-						super( Messages.getString("Contour.Edit_Contour_3")); //$NON-NLS-1$
-						
-						positiveCheckBox = new 
-								JCheckBox(Messages.getString("Contour.Is_the_contour_positive_(adds_area_to_figure)__4"), true); //$NON-NLS-1$
-						contentPanel.add(positiveCheckBox);
-						
-						setSize(340, 100);
-				}
-				
-				protected String onOk()
-				{
-						contour.setPositive(positiveCheckBox.isSelected());
-						return null;
-				}
-				
-				boolean run(Contour contour_)
-				{
-						contour = contour_;
-						positiveCheckBox.setSelected(contour.isPositive());
-						show();
-						return result;
-				}
-				
-				JCheckBox positiveCheckBox;
-				Contour contour;
-				
-	 
-		 }
+class ContourEditDialog extends fem.divider.AbstractEditingDialog
+{
+	ContourEditDialog()
+	{
+		super( Messages.getString("Contour.Edit_Contour_3")); //$NON-NLS-1$
+
+		positiveCheckBox = new JCheckBox(
+				Messages.getString("Contour.Is_the_contour_positive_(adds_area_to_figure)__4"), true); //$NON-NLS-1$
+		contentPanel.add(positiveCheckBox);
+		setSize(340, 100);
+	}
+	
+	protected String onOk()
+	{
+			contour.setPositive(positiveCheckBox.isSelected());
+			return null;
+	}
+	
+	boolean run(Contour contour_)
+	{
+			contour = contour_;
+			positiveCheckBox.setSelected(contour.isPositive());
+			show();
+			return result;
+	}
+	
+	JCheckBox positiveCheckBox;
+	Contour contour;
+}

@@ -32,8 +32,8 @@ import fem.divider.mesh.MethodAbstract;
  * @author  Paul Lysak
  */
 public class DividerUI extends javax.swing.JFrame {
-
-	private javax.swing.JToolBar toolBar;
+   private static final long serialVersionUID = 1L;
+   private javax.swing.JToolBar toolBar;
 	private javax.swing.JTabbedPane tabbedPane;
 
 	private JMenuBar menuBar;
@@ -42,9 +42,7 @@ public class DividerUI extends javax.swing.JFrame {
 	private JMenu viewMenu;
 	private JMenu meshMenu;
 	private JMenu measureMenu;
-	private JMenu helpMenu;
 	private JTextField statusField;
-	
 	
 	private JCheckBoxMenuItem showMENumbers;
 	private JCheckBoxMenuItem showMNNumbers;
@@ -62,7 +60,7 @@ public class DividerUI extends javax.swing.JFrame {
 	public static final int DEFAULT_HEIGHT = 480;
 	public static final int DEFAULT_X = 10;
 	public static final int DEFAULT_Y = 10;
-
+	public static final String packedMeshExtension = "pmd";
 	
 		/** Creates new form DividerUI */
     public DividerUI(Divider d) {
@@ -220,9 +218,8 @@ public class DividerUI extends javax.swing.JFrame {
 		FileFilter multilineMeshFilter = new fem.divider.mesh.MeshFileFilter(null,
 				"Mesh parts in multiple files", 
 				new fem.divider.mesh.MultifileMeshStreamer());
-//TODO: make a constant for file extension
-		FileFilter packedMeshFileFilter = new fem.divider.mesh.MeshFileFilter("pmd",
-				"Packed mesh data in a single file (.pmd)", 
+		FileFilter packedMeshFileFilter = new fem.divider.mesh.MeshFileFilter(packedMeshExtension,
+				"Packed mesh data in a single file (."+packedMeshExtension+")", 
 				new fem.divider.mesh.PackedMeshStreamer());
 		meshFileChooser.addChoosableFileFilter(multilineMeshFilter);
 		meshFileChooser.addChoosableFileFilter(packedMeshFileFilter);
@@ -310,7 +307,8 @@ public class DividerUI extends javax.swing.JFrame {
 				new ImageIcon(Divider.class.getResource("resources/images/stock_zoom_in_16.png")) //$NON-NLS-1$
 				)
 		{
-				public void actionPerformed(ActionEvent event)
+		      private static final long serialVersionUID = 2L;
+            public void actionPerformed(ActionEvent event)
 				{
 						AbstractPanel panel = (AbstractPanel)tabbedPane.getSelectedComponent();
 						panel.zoomIn();
@@ -325,7 +323,8 @@ public class DividerUI extends javax.swing.JFrame {
 				new ImageIcon(Divider.class.getResource("resources/images/stock_zoom_out_16.png")) //$NON-NLS-1$
 				)
 		{
-				public void actionPerformed(ActionEvent event)
+		      private static final long serialVersionUID = 3L;
+            public void actionPerformed(ActionEvent event)
 				{
 						AbstractPanel panel = (AbstractPanel)tabbedPane.getSelectedComponent();
 						panel.zoomOut();

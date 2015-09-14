@@ -5,6 +5,7 @@ package fem.divider.figure.command;
 
 import fem.divider.Messages;
 import fem.divider.figure.*;
+import fem.geometry.DotMaterial;
 
 /**
  * @author gefox
@@ -21,7 +22,15 @@ public class SplitSegmentCommand extends AbstractCommand {
 
 	boolean execute()
 	{
-		Node node = Node.interactiveCreate();
+		Node n1 = segment.getBegin();
+		Node n2 = segment.getEnd();
+		double x = ( n1.getX() + n2.getX() ) / 2.0;
+		double y = ( n1.getY() + n2.getY() ) / 2.0;
+		DotMaterial m = DotMaterial.AIR;
+		if( n1.material == n2.material && n1.material == DotMaterial.FIGURE ){
+			m = DotMaterial.FIGURE;
+		}
+		Node node = Node.interactiveCreate( x, y, m );
 		if(node==null) return false;
 		segment.getBegin().getContour().addAfter(segment.getBegin(), node);
 		newNode_stateAfter = node;

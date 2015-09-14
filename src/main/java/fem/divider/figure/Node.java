@@ -9,6 +9,7 @@ package fem.divider.figure;
 
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 
 import fem.divider.*;
@@ -188,7 +189,7 @@ public class Node extends Dot// implements ContourComponent
 
 
 
-class NodeEditDialog extends AbstractEditingDialog
+class NodeEditDialog extends AbstractEditingDialog implements FocusListener 
 {
    JTextField xField;
 	JTextField yField;
@@ -205,8 +206,8 @@ class NodeEditDialog extends AbstractEditingDialog
 		JLabel l2 = new JLabel("y="); //$NON-NLS-1$
 		JLabel l3 = new JLabel("Material: "); 
 
-		xField = new JTextField(15);
-		yField = new JTextField(15);
+		xField = new JTextField(15); xField.addFocusListener(this);
+		yField = new JTextField(15); yField.addFocusListener(this);
 		materialField = new JComboBox<String>(material_items);
 		
 		xField.setMaximumSize( xField.getPreferredSize() );
@@ -276,4 +277,17 @@ if( !nod.panel.getWorld().isInside(x,y) )
 		setVisible(true);
 		return result;
 	}
+
+   @Override
+   public void focusGained(FocusEvent e) {
+      JTextField caller = (JTextField) e.getComponent();
+      if( caller != null )
+         caller.selectAll();
+   }
+
+   @Override
+   public void focusLost(FocusEvent e) {
+      // TODO Auto-generated method stub
+      
+   }
 }

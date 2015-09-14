@@ -18,19 +18,31 @@ public class SplitSegmentCommand extends AbstractCommand {
 	public SplitSegmentCommand(Figure _figure, Segment _segment) {
 		super(_figure);
 		segment=_segment;
+		silent = false;
 	}
+	public SplitSegmentCommand(Figure _figure, Segment _segment, boolean _silent) {
+      super(_figure);
+      segment=_segment;
+      silent = _silent; // if true - generate new node without popup menus
+   }
 
 	boolean execute()
 	{
-		Node n1 = segment.getBegin();
-		Node n2 = segment.getEnd();
-		double x = ( n1.getX() + n2.getX() ) / 2.0;
-		double y = ( n1.getY() + n2.getY() ) / 2.0;
-		DotMaterial m = DotMaterial.AIR;
-		if( n1.material == n2.material && n1.material == DotMaterial.FIGURE ){
-			m = DotMaterial.FIGURE;
-		}
-		Node node = Node.interactiveCreate( x, y, m );
+	   Node node = null;
+	   if( silent ){
+   		Node n1 = segment.getBegin();
+   		Node n2 = segment.getEnd();
+   		double x = ( n1.getX() + n2.getX() ) / 2.0;
+   		double y = ( n1.getY() + n2.getY() ) / 2.0;
+   		DotMaterial m = DotMaterial.AIR;
+   		if( n1.material == n2.material && n1.material == DotMaterial.FIGURE ){
+   			m = DotMaterial.FIGURE;
+   		}
+   		node = new Node(x, y, m);
+	   } else {
+	      node = Node.interactiveCreate( 0.0, 0.0, DotMaterial.FIGURE );
+	   }
+	   
 		if(node==null) return false;
 		segment.getBegin().getContour().addAfter(segment.getBegin(), node);
 		newNode_stateAfter = node;
@@ -67,4 +79,5 @@ public class SplitSegmentCommand extends AbstractCommand {
 	}
 	
 	private Node newNode_stateAfter;
+	private boolean silent;
 }

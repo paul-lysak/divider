@@ -120,6 +120,7 @@ public class Segment {
 	 */
 	void joinToMenu(JPopupMenu popupMenu) {
 		popupMenu.add(splitSegmentAction);
+		popupMenu.add(splitSegmentByMiddleAction);
 		popupMenu.add(editCZonesAction);
 		popupMenu.add(editGeometryAction);
 	}
@@ -374,6 +375,18 @@ public class Segment {
 				begin.contour.figure.redraw();
 		}
 	};
+	
+	Action splitSegmentByMiddleAction = new AbstractAction( "Split by middle point", //$NON-NLS-1$
+         new ImageIcon(Divider.class.getResource("resources/images/splitSegment.png")) //$NON-NLS-1$
+   ) {
+      public void actionPerformed(ActionEvent event) {
+         if (begin.contour.figure.getCommandStack().doNewCommand(
+               new fem.divider.figure.command.SplitSegmentCommand(
+                     begin.contour.figure, getThisSegment(), true)))
+            // begin.contour.figure.panel.redraw();
+            begin.contour.figure.redraw();
+      }
+   };
 
 	Action editCZonesAction = new AbstractAction(Messages
 			.getString("DefaultSegment.edit_contact_zones_4"), //$NON-NLS-1$

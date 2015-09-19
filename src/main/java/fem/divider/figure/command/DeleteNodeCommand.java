@@ -21,7 +21,10 @@ public class DeleteNodeCommand extends AbstractCommand {
 
 	boolean execute()
 	{
-		node.getContour().deleteNode(node);
+		Contour c = node.getContour();
+		c.deleteNode(node);
+		if( c.isEmpty() )
+			figure.deleteContour(c);
 		return true;
 	}
 

@@ -49,7 +49,7 @@ public class Figure {
 		}
 		
 		//=========== Public access methods for field 'contours' ===========
-		/** Examine if  @contour is incorporated in this figure*/
+		/** Examine if  contour is incorporated in this figure*/
       public boolean haveContour(Contour contour) {
          return contours.indexOf( contour )== -1;
       }
@@ -57,7 +57,7 @@ public class Figure {
       public boolean isNonEmpty() {
          return !contours.isEmpty();
       } 
-		/** Delete  @contour from this figure */
+		/** Delete  contour from this figure */
 		public void deleteContour(Contour contour) {
 		   contours.remove(contour);
       }

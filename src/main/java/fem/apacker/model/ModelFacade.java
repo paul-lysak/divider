@@ -33,8 +33,6 @@ public class ModelFacade {
      */
     public void addNode(int n, double x, double y)
     {
-        //TODO
-//        System.out.println("Added node: n["+n+"]("+x+","+y+");");
         Node node = new Node(x, y);
         node.setIndex(n);
         getMesh().getNodes().add(node);

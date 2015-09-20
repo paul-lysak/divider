@@ -324,8 +324,9 @@ public class Contour {
 		public RectangleArea getBounds()                     { return bounds;  }
 		public void          setBounds(RectangleArea bounds) { this.bounds = bounds; }
 		public void          setFigure(Figure figure)        { this.figure = figure; }
-		public Contour       getThisContour()                {return this;}
+		public Contour       getThisContour()                { return this; }
 		public Figure        getFigure()                     { return figure;}
+		public boolean       isEmpty()                       { return nodes.isEmpty(); }
 		
 		static ContourEditDialog dialog = new ContourEditDialog();
 		

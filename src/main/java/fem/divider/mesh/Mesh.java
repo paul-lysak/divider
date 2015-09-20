@@ -110,33 +110,33 @@ public class Mesh {
 
 
 		/**
-		 *If needed, turn diagonal so that n1 and n2 would belong to one element
-		 *@returns was the fixing necessary
+		 *Fix, if both Nodes not in a same Element
+		 *If needed, turn diagonal so that thisNode and anotherNode would belong to one element
+		 *@return true if fixing was done
 		 */
-		boolean fixEdge(Node n1, Node n2)
+		boolean fixEdge(Node thisNode, Node anotherNode)
 		{
-				Element el1, el2;
-				for(int n1e_i =0; n1e_i<n1.elements.size(); n1e_i++)
-				{
-						el1 = (Element)n1.elements.get(n1e_i);
-						if(el1.hasNode(n2)) //if el1 contains both n1 and n2
-						{								return false;						}
-						el2 = el1.oppositeOf(n1);
-						if(el2==null) continue;
-//						System.out.println("el2="+elements.indexOf(el2));
-						if(!el2.hasNode(n2)) continue;
-						//here we have neighbors el1 and el2, that contains n1 and n2 respectively
-						if( el1.swapDiagonalWith(el2) )
-						{
-								return true;
-						}
-				}
-				return false;
+			Element elOpposite;
+			for( Element thisNodeHolder : thisNode.elements )
+			{
+				if( thisNodeHolder.hasNode(anotherNode) ) 
+					return false;
+
+				elOpposite = thisNodeHolder.oppositeOf(thisNode);
+				if(elOpposite==null) 
+					continue;
+				if(!elOpposite.hasNode(anotherNode)) 
+					continue;
+				
+				//here we have neighbors thisNodeHolder and elOpposite, that contains thisNode and anotherNode respectively
+				if( thisNodeHolder.swapDiagonalWith(elOpposite) )
+					return true;
+			}
+			return false;
 		}
 		
 		/**
-		 *Remove elements that are not inside of positive contour 
-		 *or are inside negative contour
+		 *Remove elements that are not inside of positive contour or are inside negative contour
 		 */
 		void cleanElements(List<Contour> contours)
 		{

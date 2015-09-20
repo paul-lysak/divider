@@ -109,8 +109,9 @@ public class MethodDefault extends MethodAbstract {
 	
 	/**
 	 * Makes initial "rough" triangulation (do not add new nodes to @fig)
+	 *
 	 * Returns error message on failure or null on success
-	 * TODO: nodes with 180 degree angle  may produce redundant empty triangle
+	 * TODO: nodes with 180 degree angle may produce redundant empty triangle
 	 */
 	private String watson(Mesh mesh, Figure fig)
 	{
@@ -118,15 +119,15 @@ public class MethodDefault extends MethodAbstract {
 			if(bounds==null)
 					return Messages.getString("MethodDefault.Empty_figure._Can__t_meshdown_4"); //$NON-NLS-1$
 				
-			//Create auxiliary element (they will add itself to 'mesh' in own constructors)
+			// Create auxiliary element (triangle), that surrounds our figure
+			// They will add itself to 'mesh' in own constructors
 			Node aux1 = new Node(mesh, bounds.getRight()+bounds.getWidth(),
 					bounds.getBottom()-bounds.getHeight()/2);
 			Node aux2 = new Node(mesh, (bounds.getLeft()+bounds.getRight())/2,
 					bounds.getTop()+bounds.getHeight());
 			Node aux3 = new Node(mesh, bounds.getLeft()-bounds.getWidth(), 
 					bounds.getBottom()-bounds.getHeight()/2);
-
-			// mainEl is not unused: when constructing, his elements will be added to 'mesh' of first 'Node'
+			// 'mainEl is not unused'-warning: when constructing, his elements will be added to 'mesh' of first 'Node'
 			Element mainEl = new Element(aux1, aux2, aux3);
 
 			Contour contour;
@@ -135,9 +136,13 @@ public class MethodDefault extends MethodAbstract {
 			Node node;
 			Element el, el1, el2, el3;
 			Dot dot;
-			int j=0;
 			//we will use this array of arrays to trace contours (that may be damaged);
 			ArrayList<ArrayList<Node>> traces = new ArrayList<ArrayList<Node>>(fig.contoursCount());
+			/* At first, create large triangle, that may contain @fig, then add a dot
+			 * 	from @fig and split original triangle to three smaller by this dot.
+			 * Then select next dot, choice triangle, that contains it - and do splitting
+			 * 	on it.
+			 */
 			for(int c_i=0; c_i<fig.contoursCount(); c_i++ )
 			{
 					contour = fig.getContourByIndex(c_i);
@@ -165,26 +170,23 @@ public class MethodDefault extends MethodAbstract {
 					}
 			}
 				
-			//Fix contours
-			Node n1, n2;
-			//walk through contours
-			for(int i = 0; i<traces.size(); i++)
-			{
-					if(traces.get(i).size() < 2) continue;
-					n2 = traces.get(i).get(0);
-					//walk through nodes
-					for(j=1; j<traces.get(i).size(); j++)
-					{
-							n1=n2;
-							n2 = (Node)traces.get(i).get(j);
-							mesh.fixEdge(n1, n2);
-					}
-					if(j>1) //if we've got more than 2 nodes in this contour
-					{
-							mesh.fixEdge(n2, traces.get(i).get(0) );
-					}
+			// Put all Node of the contour to the same Element 
+			Node prev, curr;
+			for( ArrayList<Node> nodes : traces ) {
+				if( nodes.size() == 0 ) return "Error: get empty contour";
+				if( nodes.size() == 1 ) continue;
+
+				curr = nodes.get(0);
+				int i;
+				for( i = 1; i < nodes.size(); i++ ){
+					prev = curr;
+					curr = nodes.get(i);
+					mesh.fixEdge(prev, curr);
+				}
+				if( i > 1 ) // fix first and last Nodes
+					mesh.fixEdge(curr, nodes.get(0));
 			}
-						
+
 			if(debugLevel>=DEBUG_LEVEL_NOREMOVE) {
 				System.out.println("NOTICE: removing irrelevant elements switched off for debug");
 				return null;

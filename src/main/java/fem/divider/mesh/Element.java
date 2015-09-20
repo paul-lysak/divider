@@ -136,7 +136,7 @@ public class Element extends Triangle {
 
 
     /**
-     * @returns (on success) element that borders with this and is opposite to node,
+     * @returns (on success) element that borders with this and not contain to node, that given
      * @returns (on failure) null
      */
     public Element oppositeOf(Node node)

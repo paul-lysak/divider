@@ -19,7 +19,12 @@ public class Triangle {
 	public Dot[] getCorners() {
 		return corners;
 	}
-
+	
+	@Override
+   public String toString()
+   {
+   	return "<" + corners[0] + " " + corners[1] + " " + corners[2] + ">";
+   }
 
 	public void setCorners(Dot[] corners) {
 		this.corners = corners;

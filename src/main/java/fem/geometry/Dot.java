@@ -75,6 +75,9 @@ public class Dot {
 	public void setMaterial(DotMaterial material_){
 		material = material_;
 	}
+	public boolean isFigure(){
+		return material == DotMaterial.FIGURE;
+	}
 	/**
 	 * Change dot coordinates to those from given value
 	 * 

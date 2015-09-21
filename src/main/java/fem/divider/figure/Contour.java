@@ -327,6 +327,7 @@ public class Contour {
 		public Contour       getThisContour()                { return this; }
 		public Figure        getFigure()                     { return figure;}
 		public boolean       isEmpty()                       { return nodes.isEmpty(); }
+		public int           getNodesAmount()                { return nodes.size(); }
 		
 		static ContourEditDialog dialog = new ContourEditDialog();
 		

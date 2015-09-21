@@ -129,14 +129,14 @@ public class Node extends fem.geometry.Dot {
     * If given Nodes have link to segment, also sets segment and offset of new node Adds node to mesh_
     * New Node will be 'AIR-material' if some of given is 'AIR-material'
     * 
+    * @param part --- which part of begin to end length will be left for begin to this (0.5 - create middle point)
     * @param edge --- whether result node will be on edge
-    * @param part --- which part of begin to end length will be left for begin to this
     */
    public Node(Node begin, Node end, double part, boolean edge) {
       this( begin.mesh, 
             begin.getX() + (end.getX() - begin.getX() ) * part, 
             begin.getY() + (end.getY() - begin.getY() ) * part,
-           (begin.material == DotMaterial.AIR || end.material == DotMaterial.AIR) ? DotMaterial.AIR : DotMaterial.FIGURE
+           (begin.isFigure() && end.isFigure()) ? DotMaterial.FIGURE : DotMaterial.AIR
       );
 
       // node will be on edge. We need to know it's segment and offset

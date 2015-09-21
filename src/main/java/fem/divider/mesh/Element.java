@@ -165,9 +165,9 @@ public class Element extends Triangle {
     }
 
     /**
-     *    /_\   =>  /|\
-     *   \ /           \|/
-     *@returns is it allowed 
+     *    /_\  =>  /|\
+     *    \ /      \|/
+     *@returns if it is allowed 
      *  /\
      *  \/
      *  or
@@ -176,62 +176,58 @@ public class Element extends Triangle {
      */
     public boolean swapDiagonalWith(Element el)
     {
-                    Node a,b,//common nodes
-                    c1, c2;//individual nodes
-                    if(!el.hasNode(getNodes()[0]))
-                    {
-                                    c1 = getNodes()[0];
-                                    a = getNodes()[1];
-                                    b = getNodes()[2];
-                    }
-                    else
-                                    if(!el.hasNode(getNodes()[1]))
-                                    {
-                                                    c1 = getNodes()[1];
-                                                    a = getNodes()[2];
-                                                    b = getNodes()[0];
-                                    }
-                                    else
-                                    {
-                                                    c1 = getNodes()[2];
-                                                    a = getNodes()[0];
-                                                    b = getNodes()[1];
-                                    }
-                    if(!hasNode(el.getNodes()[0]))
-                                    c2 = el.getNodes()[0];
-                    else
-                                    if(!hasNode(el.getNodes()[1]))
-                                                    c2 = el.getNodes()[1];
-                                    else
-                                                    c2 = el.getNodes()[2];
+    	Node a,b,//common nodes
+    	c1, c2;//individual nodes
+    	if(!el.hasNode(getNodes()[0]))
+    	{
+    		c1 = getNodes()[0];
+    		a = getNodes()[1];
+    		b = getNodes()[2];
+    	}
+    	else if(!el.hasNode(getNodes()[1]))
+    	{
+    		c1 = getNodes()[1];
+    		a = getNodes()[2];
+    		b = getNodes()[0];
+    	}
+    	else
+    	{
+    		c1 = getNodes()[2];
+    		a = getNodes()[0];
+    		b = getNodes()[1];
+    	}
+    	if(!hasNode(el.getNodes()[0]))
+    		c2 = el.getNodes()[0];
+    	else if(!hasNode(el.getNodes()[1]))
+    		c2 = el.getNodes()[1];
+    	else
+    		c2 = el.getNodes()[2];
 
-                    double angle = 0;
-                    //c2 a c1 b
-                    angle+=a.angle(c1, c2);
-                    angle+=c1.angle(a, b);
-                    angle+=b.angle(c1, c2);
-                    angle+=c2.angle(b,a);
-                    if(angle<2*Math.PI-IFemSettings.GENERAL_ACCURACY)
-                    {
-                                    return false;
-                    }
-                    //replace nodes
-                    getNodes()[0]=c1;
-                    getNodes()[1]=a;
-                    getNodes()[2]=c2;
+    	double angle = 0;
+    	//c2 a c1 b
+    	angle+=a.angle(c1, c2);
+    	angle+=c1.angle(a, b);
+    	angle+=b.angle(c1, c2);
+    	angle+=c2.angle(b,a);
+    	if(angle<2*Math.PI-IFemSettings.GENERAL_ACCURACY)
+    		return false;
+    	//replace nodes
+    	getNodes()[0]=c1;
+    	getNodes()[1]=a;
+    	getNodes()[2]=c2;
 
-                    el.getNodes()[0]=c2;
-                    el.getNodes()[1]=b;
-                    el.getNodes()[2]=c1;
+    	el.getNodes()[0]=c2;
+    	el.getNodes()[1]=b;
+    	el.getNodes()[2]=c1;
 
-                    //update element lists in nodes
-                    //ex-this
-                    c1.add(el);
-                    a.forget(el);
-                    b.forget(this);
-                    //ex-el
-                    c2.add(this);
-                    return true;
+    	//update element lists in nodes
+    	//ex-this
+    	c1.add(el);
+    	a.forget(el);
+    	b.forget(this);
+    	//ex-el
+    	c2.add(this);
+    	return true;
     }
 
     private void drawFignu(Graphics2D g)
@@ -315,7 +311,8 @@ public class Element extends Triangle {
                && getAngleValue(getMinAngleIndex()) > mesh.settings.getMinAngle());
        if( isNeedUpgrade || getArea() < mesh.settings.minArea)
          return false; //area OK
-		
+
+
        boolean isOuter = !isInside(circleCenter()) || getAngleValue(getMinAngleIndex()) < OUTER_UPGRADE_ANGLE;
        if( isOuter )
            return outerUpgrade();
@@ -355,7 +352,7 @@ public class Element extends Triangle {
        Node N2 = getNodes()[n2];
 
        // Get opposite element that: 1) border with this element, 2) didn't include 'maxN' node
-       Element op4 = this.oppositeOf(getNodes()[man]);
+       Element op4 = this.oppositeOf(maxN);
        if(op4!=null) {
           int op4max = op4.getMaxAngleIndex(); Node op4Nmax = op4.getNodes()[op4max];
           int op4_1 =  op4.getOtherCorner1Index(op4max); Node op4N1 = op4.getNodes()[op4_1];
@@ -365,32 +362,28 @@ public class Element extends Triangle {
                 (op4Nmax == N1 || op4Nmax == N2) ) return false; //not upgraded 
        }
 
-       Node newNode = new Node(getNodes()[n1], getNodes()[n2], 0.5,  op4==null?true:false ); 
+		 Node newNode = new Node(N1, N2, 0.5, op4==null?true:false ); 
 
-       Triangle el1 = new Element(newNode, getNodes()[n2], getNodes()[man]);
-       Triangle el2 = new Element(newNode, getNodes()[man], getNodes()[n1]);
+       Triangle el1 = new Element(newNode, N2, maxN);
+       Triangle el2 = new Element(newNode, maxN, N1);
 
        this.delete();
 
        if(op4!=null){ //we have opposite element, let's split it too
-          Node op4node = op4.getThirdNode(getNodes()[n1], getNodes()[n2]);
+          Node op4node = op4.getThirdNode(N1, N2);
 
-          Triangle op4el1 = new Element(op4node, getNodes()[n2], newNode);
-          Triangle op4el2 = new Element(newNode, getNodes()[n1], op4node);
+          Triangle op4el1 = new Element(op4node, N2, newNode);
+          Triangle op4el2 = new Element(newNode, N1, op4node);
 
           op4.delete();
-//						op4node.lawson();
-
-          }
-
-//				maxN.lawson();
+       }
 
        newNode.lawson();
        return true;
     }
 
     /**
-     *Returns coeficient (0...1] , that tells maximal allowed size
+     *Returns coefficient (0...1] , that tells maximal allowed size
      *of this element (relatively to mesh.settings.maxArea)
      */
     private double areaShrink()
@@ -426,10 +419,13 @@ public class Element extends Triangle {
         return new Node[3];
     }
 		
-                
+    public boolean isFigure() {
+		Node[] nodes = getNodes();
+		return nodes[0].isFigure() && nodes[1].isFigure() && nodes[2].isFigure();
+	 }            
                 
     public Node[] getNodes()
     {
-            return (Node[])getCorners();
+    	return (Node[])getCorners();
     }
 }//end class

@@ -53,7 +53,7 @@ public class MethodDefault extends MethodAbstract {
 		MeshSettings settings_ = figure_.getMeshSettings();
 		mesh.settings=settings_;
 				
-		//make initial triangulation
+		//make initial triangulation, without adding new Nodes
 		String msg = watson(mesh, figure_);
 		if(msg != null)
 		{
@@ -130,12 +130,10 @@ public class MethodDefault extends MethodAbstract {
 			// 'mainEl is not unused'-warning: when constructing, his elements will be added to 'mesh' of first 'Node'
 			Element mainEl = new Element(aux1, aux2, aux3);
 
-			Contour contour;
 			fem.divider.figure.Node fnode;
 			fem.divider.figure.CZMark czmark;
 			Node node;
 			Element el, el1, el2, el3;
-			Dot dot;
 			//we will use this array of arrays to trace contours (that may be damaged);
 			ArrayList<ArrayList<Node>> traces = new ArrayList<ArrayList<Node>>(fig.contoursCount());
 			/* At first, create large triangle, that may contain @fig, then add a dot
@@ -143,20 +141,15 @@ public class MethodDefault extends MethodAbstract {
 			 * Then select next dot, choice triangle, that contains it - and do splitting
 			 * 	on it.
 			 */
-			for(int c_i=0; c_i<fig.contoursCount(); c_i++ )
+			for( Contour contour : fig.getContours() )
 			{
-					contour = fig.getContourByIndex(c_i);
-					List<Dot> dots = contour.getDots();
-					traces.add( c_i, new ArrayList<Node>(dots.size()) );
+					ArrayList<Node> mesh_nodes = new ArrayList<Node>( contour.getNodesAmount() );
 					//Add nodes of contour to mesh
-					for(int ni=0; ni<dots.size(); ni++ )
+					for( Dot dot : contour.getDots() )
 					{
-							dot=dots.get(ni);
-							el=mesh.findElementThatCovers(dot);
+							el = mesh.findElementThatCovers(dot);
 							if(el==null)
-							{
-									return "Error: found a node (x=" + dot.x + ",y=" + dot.y +") that isn't covered by any element"; //$NON-NLS-1$
-							}
+								return "Error: found a node (x=" + dot.x + ",y=" + dot.y +") that isn't covered by any element"; //$NON-NLS-1$
 							//add new node
 							node = Node.createConditionaly(mesh, dot);
 							//replace old triangle by 3 new
@@ -166,8 +159,9 @@ public class MethodDefault extends MethodAbstract {
 							el.delete();
 								
 							node.lawson();
-							traces.get(c_i).add(node);//remember node
+							mesh_nodes.add(node);//remember node
 					}
+					traces.add( mesh_nodes );
 			}
 				
 			// Put all Node of the contour to the same Element 
@@ -216,21 +210,21 @@ public class MethodDefault extends MethodAbstract {
 			double sq1, sqSum;
 			do
 			{
-					sqSum=0;
-					int s = mesh.elements.size();
-					affected = false;
-					for(int i = 0; i<s; i++) //for all elements
-					{
-							el = (Element)mesh.elements.get(i);
-							sq1=el.getArea()-mesh.settings.maxArea;//calculate exceeding area
-							if(sq1>0) sqSum+=sq1;
-							upgraded = el.upgrade();
-							if( upgraded ) { //old element was removed, we gona stop earlier
-							   s--; 
-								affected=true;
-							}
-					}//end for all elements
-					excessiveSquare = sqSum;
+				sqSum=0;
+				int s = mesh.elements.size();
+				affected = false;
+				for(int i = 0; i<s; i++) //for all elements
+				{
+					el = (Element)mesh.elements.get(i);
+					sq1=el.getArea()-mesh.settings.maxArea;//calculate exceeding area
+					if(sq1>0) sqSum+=sq1;
+					upgraded = el.upgrade();
+					if( upgraded ) { //old element was removed, we gona stop earlier
+					   s--; 
+						affected=true;
+					}
+				}//end for all elements
+				excessiveSquare = sqSum;
 			}
 			while(affected);
 	}//end upgrade

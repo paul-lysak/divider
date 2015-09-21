@@ -40,7 +40,7 @@ public class SplitSegmentCommand extends AbstractCommand {
    		}
    		node = new Node(x, y, m);
 	   } else {
-	      node = Node.interactiveCreate( 0.0, 0.0, DotMaterial.FIGURE );
+	      node = Node.interactiveCreate( 0.0, 0.0, segment.getEnd().material );
 	   }
 	   
 		if(node==null) return false;

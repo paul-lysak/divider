@@ -42,7 +42,8 @@ public class CreateAirFrameCommand extends AbstractCommand {
 	   CreateAirFrameDialog dialog = new CreateAirFrameDialog(figure, ui);
 	   
 	   if( dialog.getCountOfFrameDots() == 0 ){
-	      ui.setStatusbarText("Can't generate air frame: program have no dots for it");
+	      javax.swing.JOptionPane.showMessageDialog(null, "Can't generate air frame: program have no dots for it", Messages.getString("MethodDefault.Meshdown_failed_3"),  //$NON-NLS-1$
+               javax.swing.JOptionPane.ERROR_MESSAGE);
 	      return false;
 	   }
 
@@ -198,10 +199,18 @@ class CreateAirFrameDialog extends AbstractEditingDialog {
       
       // Default values for air frame
       RectangleArea area = figure.calculateBounds();
-      firstX.setText( Double.toString( area.getLeft()  - 10.0 ));
-      secondX.setText(Double.toString( area.getRight() + 10.0 ));
-      firstY.setText( Double.toString( area.getBottom()- 10.0 ));
-      secondY.setText(Double.toString( area.getTop()   + 10.0 ));
+      if( area == null ){
+         javax.swing.JOptionPane.showMessageDialog(null, "Try create air frame around nothing", "Can not create air frame", javax.swing.JOptionPane.ERROR_MESSAGE);
+         firstX.setText( Double.toString( 0.0 ));
+         secondX.setText(Double.toString( 10.0 ));
+         firstY.setText( Double.toString( 0.0 ));
+         secondY.setText(Double.toString( 10.0 ));
+      } else {
+         firstX.setText( Double.toString( area.getLeft()  - 10.0 ));
+         secondX.setText(Double.toString( area.getRight() + 10.0 ));
+         firstY.setText( Double.toString( area.getBottom()- 10.0 ));
+         secondY.setText(Double.toString( area.getTop()   + 10.0 ));
+      }
    }
    
    private static final long serialVersionUID = 1L;

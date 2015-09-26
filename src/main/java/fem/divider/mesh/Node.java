@@ -25,7 +25,7 @@ public class Node extends fem.geometry.Dot {
    //TODO: make properties private
 	Mesh mesh;
 	
-	ArrayList<Element> elements = new ArrayList<Element>(5);
+	HashSet<Element> elements = new HashSet<Element>();
 	private boolean edge = false;
 	boolean valid = true;
 
@@ -268,7 +268,7 @@ public class Node extends fem.geometry.Dot {
 				i.deleteBy(this);
 			}
 		}
-		elements = null;
+		elements = null; 
 		valid = false;
 	}// end delete()
 
@@ -280,22 +280,15 @@ public class Node extends fem.geometry.Dot {
 	}
 
 	/**
-	 * Makes node "forger" about element If node "forgets" about all elements,
-	 * it delete()s itself
+	 * Makes node "forger" about element.
+	 * If node "forgets" about all elements, it delete()s itself
 	 */
 	public void forget(Triangle element) {
 		elements.remove(element);
-		int i = elements.indexOf(element);
-		// Seems there is a bug in ArrayList implementation.
-		// Sometimes elements are not removed at once,
-		// so i had to repeat remove :-(
-		if (i != -1)
-			elements.remove(element);
-		i = elements.indexOf(element);
 
 		if (elements.size() == 0)
 			delete();
-	}// end forget(Element element)
+	}
 
 	public void draw(Graphics2D g) {
 		MeshPanel panel = mesh.panel;
@@ -367,36 +360,21 @@ public class Node extends fem.geometry.Dot {
 	/**
 	 * Lawson's exchange algorithm
 	 * 
-	 * @returns set of affected elements
 	 */
-	public HashSet<Element> lawson() {
-		// System.out.println("Lawson 4 "+elements.size()+" elements");
-		HashSet<Element> aff = new HashSet<Element>();
-
-		Element myEl, oppEl; // close element and opposite element
-		// walk through all Elements. Thay may be added at the time this loop is
-		// running
-		for (int i = 0; i < elements.size(); i++) {
-			myEl = (Element) elements.get(i);
-			oppEl = myEl.oppositeOf(this);
-			// has no opposite
-			if (oppEl == null)
-				continue;
-			// System.out.println("op4");
-			// is this dot insode oppEl's circle?
-			if (oppEl.isInsideCircle(this)) {
-				if (!myEl.swapDiagonalWith(oppEl))
-					continue;// skip if failed
-				add(oppEl);
-				i--; // we'll look at this element once more
-				// remember affected elements
-				aff.add(myEl);
-				aff.add(oppEl);
-			}
+	public void lawson() {
+		// We can't modify elements from HashSet when iterating, so we need do it over copy
+		HashSet<Element> elementsCopy = new HashSet<Element>(elements);
+		for( Element myEl : elementsCopy ) {
+		   for( Element oppEl = myEl.oppositeOf(this); oppEl != null && oppEl.isInsideCircle(this);
+		                oppEl = myEl.oppositeOf(this) )
+		   {
+   			// if distance between this Node and center of oppEl is less than 
+   			//    distance between oppEll's first Node and the center
+   			if (!myEl.swapDiagonalWith(oppEl))
+   				break;
+		   }
 		}
-
-		return aff;
-	}// end lawson()
+	}
 
 	void setSegment(fem.divider.figure.Segment segment_, double offset_) {
 		segment = segment_;
@@ -460,49 +438,6 @@ public class Node extends fem.geometry.Dot {
 		}
 		return ret;
 	}// end checkCZone(divider.figure.CZone czone_)
-
-	/**
-	 * For edge node find nodes that belong to same segment and
-	 * 
-	 * @return neighbours: {left, right} or null on appropriate places
-	 */
-	public Node[] getNeighbours() {
-		Node neighbours[] = { null, null };
-		if (!isOnEdge())
-			return neighbours;
-
-		Node left, right, n;
-		left = null;
-		right = null;
-		Element element;
-		Node[] elNodes;
-		int s = elements.size();
-		for (int i = 0; i < s; i++) {
-			element = (Element) elements.get(i);
-			elNodes = element.getNodes();
-			for (int j = 0; j < elNodes.length; j++) {
-				n = elNodes[j];
-				// skip node if it's this, if not on edge or has segment,
-				// different from this
-				if (n == this || !n.isOnEdge() || n.segment != segment)
-					continue;
-				// possibly, update left node
-				if (n.offset < offset) {
-					if (left == null || left.offset < n.offset)
-						left = n;
-				}
-				// possibly, update left node
-				if (n.offset > offset) {
-					if (right == null || right.offset > n.offset)
-						right = n;
-				}
-			}
-		}// for nodes of element
-
-		neighbours[0] = left;
-		neighbours[1] = right;
-		return neighbours;
-	}// for elements that include this node
 
 	/** Does this node lay on edge? */
 	boolean isOnEdge() {

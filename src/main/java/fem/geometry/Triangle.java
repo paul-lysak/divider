@@ -192,7 +192,6 @@ public class Triangle {
 					return false;
 	}
 
-
 	/**
 	 * Get dot that is center of triangle
 	 * Triangle is "outer" if has 'AIR'-material corner

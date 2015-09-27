@@ -6,7 +6,8 @@
 
 package fem.divider.mesh;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.awt.*;
 
 import fem.common.IFemSettings;
@@ -25,7 +26,7 @@ public class Node extends fem.geometry.Dot {
    //TODO: make properties private
 	Mesh mesh;
 	
-	HashSet<Element> elements = new HashSet<Element>();
+	List<Element> elements = new ArrayList<Element>(4);
 	private boolean edge = false;
 	boolean valid = true;
 
@@ -89,16 +90,13 @@ public class Node extends fem.geometry.Dot {
 		this.prevOffset = prevOffset;
 	}
 
-
-
-
 	// Node of figure that is original of this node (if it exists)
 	fem.divider.figure.Node figureNode = null;
 	public static Color nodeNumberColor = new Color(0, 0, 175);
 	
 	
 	/**
-	 * Creates new Node Adds node to mesh_
+	 * Creates new Node. Adds node to mesh_
 	 */
 	public Node(Mesh mesh_, double x_, double y_, DotMaterial material_) {
 		super(x_, y_, material_);
@@ -263,11 +261,10 @@ public class Node extends fem.geometry.Dot {
 	 */
 	public void delete() {
 		mesh.forget(this);
-		if (elements != null) {
-			for(Element i : elements) {
+		if (elements != null)
+			for(Element i : elements) 
 				i.deleteBy(this);
-			}
-		}
+
 		elements = null; 
 		valid = false;
 	}// end delete()
@@ -363,7 +360,7 @@ public class Node extends fem.geometry.Dot {
 	 */
 	public void lawson() {
 		// We can't modify elements from HashSet when iterating, so we need do it over copy
-		HashSet<Element> elementsCopy = new HashSet<Element>(elements);
+		List<Element> elementsCopy = new ArrayList<Element>(elements);
 		for( Element myEl : elementsCopy ) {
 		   for( Element oppEl = myEl.oppositeOf(this); oppEl != null && oppEl.isInsideCircle(this);
 		                oppEl = myEl.oppositeOf(this) )

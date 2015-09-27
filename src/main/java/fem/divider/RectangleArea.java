@@ -44,6 +44,7 @@ public class RectangleArea extends AbstractArea{
 		
 		public double getWidth() { return right - left;}
 		public double getHeight() { return top - bottom;}
+		public double getArea() { return getWidth()*getHeight(); }
 		
 /*
  public void setLeft(double val) {left = val;}

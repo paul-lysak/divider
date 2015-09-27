@@ -106,11 +106,9 @@ public class Mesh {
 		{
 				return elements.remove(element);
 		}
-		
-
 
 		/**
-		 *Fix, if both Nodes not in a same Element
+		 *Fix, if both Nodes is neighbors, but belong different Elements
 		 *If needed, turn diagonal so that thisNode and anotherNode would belong to one element
 		 *@return true if fixing was done
 		 */
@@ -132,6 +130,29 @@ public class Mesh {
 				if( thisNodeHolder.swapDiagonalWith(elOpposite) )
 					return true;
 			}
+
+			if( anotherNode.elements.size() < thisNode.elements.size() ){
+				Node temp = anotherNode;
+				anotherNode = thisNode;
+				thisNode = temp;
+			}
+
+			Node nearest = null;
+			double dist = Double.POSITIVE_INFINITY;
+			boolean material = thisNode.isFigure() && anotherNode.isFigure();
+			for( Element thisNodeHolder : thisNode.elements )
+			{
+			   Node[] nodes = thisNodeHolder.getNodes();
+			   for(int i = 0; i < 3; i++)
+			      if( nodes[i] != thisNode ){
+			         if( material && !nodes[i].isFigure() )
+			            continue;
+			         if( thisNode.distance(nodes[i]) < dist )
+			            nearest = nodes[i];
+			      }
+			}		
+			// Ignore warning 'unused' - 'link' was add to Mesh in own constructor
+			Element link = new Element(thisNode, nearest, anotherNode); 
 			return false;
 		}
 		
@@ -238,13 +259,13 @@ public class Mesh {
 			 
 			//Check nodes of CZones:
 			//for all Nodes
-			for(Iterator ni=nodes.iterator(); ni.hasNext(); )
+			for(Iterator<Node> ni=nodes.iterator(); ni.hasNext(); )
 			{
 				Node node = (Node)ni.next();
 				if( (node.getCzone()!=null||node.getPrevCzone()!=null)&&!overwrite ) continue;
 				node.setCzone(null); node.setPrevCzone(null);
 				 //for all CZones
-				 for(Iterator icz=czones.iterator(); icz.hasNext(); )
+				 for(Iterator<CZone> icz=czones.iterator(); icz.hasNext(); )
 				 {
 				 	CZone czone = (CZone)icz.next();
 			 		//Check CZone

@@ -26,7 +26,7 @@ public class Dot {
 	public Dot(double x_, double y_) {
 		x = x_;
 		y = y_;
-		material = DotMaterial.FIGURE;
+		material = DotMaterial.AIR;
 	}
 	public Dot(double x_, double y_, DotMaterial material_) {
 		this(x_, y_);

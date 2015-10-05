@@ -35,12 +35,12 @@ public class Element extends Triangle {
 		 * and adds it to mesh of given node
 		 */
     public Element(Node A_, Node B_, Node C_) {
-       super( A_, B_, C_ );
-       mesh = A_.mesh;
-       A_.add(this);
-       B_.add(this);
-       C_.add(this);
-       mesh.elements.add(this);
+				mesh = A_.mesh;
+				getNodes()[0]=A_; getNodes()[1]=B_; getNodes()[2]=C_;
+				A_.add(this);
+				B_.add(this);
+				C_.add(this);
+				mesh.elements.add(this);
     }
 
 	 private void drawSide( Node start, Node end, Graphics2D g ){
@@ -168,6 +168,11 @@ public class Element extends Triangle {
      *    /_\  =>  /|\
      *    \ /      \|/
      *@returns if it is allowed 
+     *  /\
+     *  \/
+     *  or
+     *  //
+     *  \\
      */
     public boolean swapDiagonalWith(Element el)
     {
@@ -198,19 +203,14 @@ public class Element extends Triangle {
     	else
     		c2 = el.getNodes()[2];
 
-    	// Prevent swapping of inner bound's elements (the bound will be destroyed, if it was a-b and we swap)
-    	if( a.isFigure() && b.isFigure() && ( c1.isFigure() ^ c2.isFigure()) )
-    	   return false;
-    	
     	double angle = 0;
     	//c2 a c1 b
     	angle+=a.angle(c1, c2);
     	angle+=c1.angle(a, b);
     	angle+=b.angle(c1, c2);
     	angle+=c2.angle(b,a);
-    	if( angle<2*Math.PI-IFemSettings.GENERAL_ACCURACY )
+    	if(angle<2*Math.PI-IFemSettings.GENERAL_ACCURACY)
     		return false;
-    
     	//replace nodes
     	getNodes()[0]=c1;
     	getNodes()[1]=a;
@@ -299,8 +299,8 @@ public class Element extends Triangle {
 //		static int i =0;
 
     /**
-     * Split element info smaller elements.
-	  * If needed result[1] has added elements 
+     * Split element info smaller elements if needed
+     * result[1] has added elements 
      * If these was no upgrade returns zero-size array
      * @returns two-dimension array: result[0] has removed elements, 
      */
@@ -328,11 +328,8 @@ public class Element extends Triangle {
         Dot cdot = getCentralDot();
         Node cnode = new Node(mesh, cdot);
         
-        @SuppressWarnings("unused")
         Triangle el1 = new Element(getNodes()[0], getNodes()[1], cnode);
-        @SuppressWarnings("unused")
         Triangle el2 = new Element(getNodes()[1], getNodes()[2], cnode);
-        @SuppressWarnings("unused")
         Triangle el3 = new Element(getNodes()[2], getNodes()[0], cnode);
         this.delete();
         
@@ -346,39 +343,42 @@ public class Element extends Triangle {
      */
     private boolean outerUpgrade()
     {
-       int maxAngIndx = getMaxAngleIndex(); // index of corner with biggest angle
-       Node nodeMax = getNodes()[maxAngIndx];
+       int man = getMaxAngleIndex(); // index of corner with biggest angle
+       Node maxN = getNodes()[man];
 
-       Node node1 = getNodes()[getOtherCorner1Index(maxAngIndx)];
-       Node node2 = getNodes()[getOtherCorner2Index(maxAngIndx)];
+       int n1 = getOtherCorner1Index(man);
+       int n2 = getOtherCorner2Index(man);
+       Node N1 = getNodes()[n1];
+       Node N2 = getNodes()[n2];
 
-       // Get opposite element that: 1) border with this element, 2) didn't include 'modeMax' node
-       Element op4 = this.oppositeOf(nodeMax);
+       // Get opposite element that: 1) border with this element, 2) didn't include 'maxN' node
+       Element op4 = this.oppositeOf(maxN);
        if(op4!=null) {
           int op4max = op4.getMaxAngleIndex(); Node op4Nmax = op4.getNodes()[op4max];
           int op4_1 =  op4.getOtherCorner1Index(op4max); Node op4N1 = op4.getNodes()[op4_1];
           int op4_2 = op4.getOtherCorner2Index(op4max); Node op4N2 = op4.getNodes()[op4_2];
           //check if we won't make the opposite element worse
-          if( op4Nmax.angle(op4N1, op4N2) > (3*Math.PI/4) && 
-                (op4Nmax == node1 || op4Nmax == node2) ) return false; //not upgraded 
+          if( op4Nmax.angle(op4N1, op4N2)> (3*Math.PI/4) && 
+                (op4Nmax == N1 || op4Nmax == N2) ) return false; //not upgraded 
        }
 
-       // Split opposite to 'nodeMax' edge in middle point
-		 Node nodeMid = new Node(node1, node2, 0.5, op4==null?true:false ); 
-       Triangle el1 = new Element(nodeMid, node2, nodeMax);
-       Triangle el2 = new Element(nodeMid, nodeMax, node1);
+		 Node newNode = new Node(N1, N2, 0.5, op4==null?true:false ); 
+
+       Triangle el1 = new Element(newNode, N2, maxN);
+       Triangle el2 = new Element(newNode, maxN, N1);
+
        this.delete();
 
        if(op4!=null){ //we have opposite element, let's split it too
-          Node opTo_nodeMax = op4.getThirdNode(node1, node2);
+          Node op4node = op4.getThirdNode(N1, N2);
 
-          Triangle op4el1 = new Element(opTo_nodeMax, node2, nodeMid);
-          Triangle op4el2 = new Element(nodeMid, node1, opTo_nodeMax);
+          Triangle op4el1 = new Element(op4node, N2, newNode);
+          Triangle op4el2 = new Element(newNode, N1, op4node);
 
           op4.delete();
        }
 
-       nodeMid.lawson();
+       newNode.lawson();
        return true;
     }
 

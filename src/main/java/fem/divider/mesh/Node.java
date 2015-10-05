@@ -358,14 +358,17 @@ public class Node extends fem.geometry.Dot {
 	 * Lawson's exchange algorithm
 	 * 
 	 */
-	public void lawson() {  
+	public void lawson() {
+		// We can't modify elements from HashSet when iterating, so we need do it over copy
 		List<Element> elementsCopy = new ArrayList<Element>(elements);
 		for( Element myEl : elementsCopy ) {
-		   for( Element oppEl = myEl.oppositeOf(this); oppEl != null && oppEl.isInsideCircle(this); oppEl = myEl.oppositeOf(this) )
+		   for( Element oppEl = myEl.oppositeOf(this); oppEl != null && oppEl.isInsideCircle(this);
+		                oppEl = myEl.oppositeOf(this) )
 		   {
-		      // TODO: do not swap, if some of edges is part of initial inner contour
-		      if (!myEl.swapDiagonalWith(oppEl))
-		         break;
+   			// if distance between this Node and center of oppEl is less than 
+   			//    distance between oppEll's first Node and the center
+   			if (!myEl.swapDiagonalWith(oppEl))
+   				break;
 		   }
 		}
 	}

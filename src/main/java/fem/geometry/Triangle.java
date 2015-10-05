@@ -4,28 +4,20 @@ import fem.common.IFemSettings;
 import fem.geometry.DotMaterial;
 
 public class Triangle {
-   private Dot corners[] = createCornersArray(); //new Dot[3];
-   
-   public Triangle( Dot A_, Dot B_, Dot C_ ){
-      corners[0] = A_;
-      corners[1] = B_;
-      corners[2] = C_;
-   }
+
+	private Dot corners[] = createCornersArray(); //new Dot[3];
 	
-   /**
-    * Return newly created 3-elements array. 
-    * Element type should be subclassed from Dot.
-    */
-   protected Dot[] createCornersArray() {
-      return new Dot[3];
-   }
+        /**
+         * Return newly created 3-elements array. 
+         * Element type should be subclassed from Dot.
+         * 
+         */
+        protected Dot[] createCornersArray() {
+            return new Dot[3];
+        }
 	
 	public Dot[] getCorners() {
 		return corners;
-	}
-	
-	public void setCorners(Dot[] corners) {
-	   this.corners = corners;
 	}
 	
 	@Override
@@ -33,6 +25,11 @@ public class Triangle {
    {
    	return "<" + corners[0] + " " + corners[1] + " " + corners[2] + ">";
    }
+
+	public void setCorners(Dot[] corners) {
+		this.corners = corners;
+	}
+
 
 	public boolean isInside(fem.geometry.Dot dot) {
 			Line l1 = new Line(corners[0], corners[1]);
@@ -73,7 +70,7 @@ public class Triangle {
 	 * @param i
 	 * @return
 	 */
-	public int getOtherCorner1Index(int i) {
+	public static int getOtherCorner1Index(int i) {
 			if(i==0) return 1;
 			if(i==1) return 2;
 			return 0; //i==2
@@ -86,7 +83,7 @@ public class Triangle {
 	 * @param i
 	 * @return
 	 */
-	public int getOtherCorner2Index(int i) {
+	public static int getOtherCorner2Index(int i) {
 			if(i==0) return 2;
 			if(i==1) return 0;
 			return 1; //i==1
@@ -94,7 +91,7 @@ public class Triangle {
 
         
         /**
-         * Are i1 and i2 situated in ascending order in sequence 1-2-3-1
+         * Are i1 and i2 situated in ascendign order in sequence 1-2-3-1
          * For example: i1=0, i2=1 => true, i1=0, i2=2 => false
          * 
          * @param i1
@@ -203,26 +200,22 @@ public class Triangle {
 	 */
 	public Dot getCentralDot() {
 		Dot[] ds = getCorners();
-		DotMaterial dm = DotMaterial.FIGURE;
 		if( ds[0].material == DotMaterial.AIR || ds[1].material == DotMaterial.AIR || ds[2].material == DotMaterial.AIR )
-		   dm = DotMaterial.AIR;
-		
-		return new Dot( (ds[0].x+ds[1].x+ds[2].x)/3, (ds[0].y+ds[1].y+ds[2].y)/3, dm);
+			return new Dot( (ds[0].x+ds[1].x+ds[2].x)/3, (ds[0].y+ds[1].y+ds[2].y)/3, DotMaterial.AIR);
+		else
+			return new Dot( (ds[0].x+ds[1].x+ds[2].x)/3, (ds[0].y+ds[1].y+ds[2].y)/3, DotMaterial.FIGURE);
 	}
 
-	/**
-	 * Calculate area
-	 * @return area of the Triangle
-	 */
+
 	public double getArea() {
-	   // Original formula: 0.5*abs(a*b*sin(A)), where 'a' and 'b' is edges around angle 'A'
-		// 	'A' is angle created by line <corners[0]-corners[1]-corners[2]>
-		// Express 'A': A = P-R, where P and R is angles that starts from OX-axis
-		// So: a*b*sin(P - R) -> simplify sin -> this formula
-		double s = (corners[0].x - corners[2].x)*(corners[1].y-corners[2].y)
-					- (corners[1].x - corners[2].x)*(corners[0].y-corners[2].y);
-		return 0.5*Math.abs(s);
-	}
+					double s = -0.5*(
+					getCorners()[0].x*(getCorners()[1].y-getCorners()[2].y)+
+					getCorners()[1].x*(getCorners()[2].y-getCorners()[0].y)+
+					getCorners()[2].x*(getCorners()[0].y-getCorners()[1].y)
+					);
+					return Math.abs(s);
+	//				return s;
+			}
 
 
 	public double getAngleValue(int i) {
@@ -251,20 +244,21 @@ public class Triangle {
 	 * @returns index of corner with maximal angle
 	 */
 	public int getMaxAngleIndex() {
-	   double first = getAngleValue(0);
-	   double second = getAngleValue(1);
-	   double third = getAngleValue(2);
-	   
-	   // Possible sets: '123', '132', '312', '321', '213', '231'	   
-	   if( first > second ) // left: '321', '213', '231'
-	      if( first > third )
-				return 0;
-	      else
-	         return 2;
-	   else                 // left: '123', '132', '312'
-	      if( second > third )
-	         return 1;
-	      else
-	         return 2;
+			if( getAngleValue(0) > getAngleValue(1) && getAngleValue(0) > getAngleValue(2) )
+					return 0;
+			if( getAngleValue(1) > getAngleValue(0) && getAngleValue(1) > getAngleValue(2) )
+					return 1;
+			return 2;
 	}
+        
+        
+        /**
+         * Sort nodes of element in counter-clockwise order.
+         * Currently not done.
+         * 
+         */
+        public void sortNodes() {
+            //TODO
+        }
+
 }

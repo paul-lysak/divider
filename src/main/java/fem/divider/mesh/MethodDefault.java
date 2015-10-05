@@ -3,9 +3,9 @@
  */
 package fem.divider.mesh;
 
-import java.util.*;
+import java.util.ArrayList;
 
-import fem.divider.*;
+import fem.divider.Messages;
 import fem.divider.figure.Contour;
 import fem.divider.figure.Figure;
 import fem.geometry.Dot;
@@ -109,7 +109,6 @@ public class MethodDefault extends MethodAbstract {
 	
 	/**
 	 * Makes initial "rough" triangulation (do not add new nodes to @fig)
-	 *
 	 * Returns error message on failure or null on success
 	 * TODO: nodes with 180 degree angle may produce redundant empty triangle
 	 */
@@ -127,26 +126,29 @@ public class MethodDefault extends MethodAbstract {
 					bounds.getTop()+bounds.getHeight());
 			Node aux3 = new Node(mesh, bounds.getLeft()-bounds.getWidth(), 
 					bounds.getBottom()-bounds.getHeight()/2);
-			// 'mainEl is not unused'-warning: when constructing, his elements will be added to 'mesh' of first 'Node'
-			Element mainEl = new Element(aux1, aux2, aux3);
-
-			fem.divider.figure.Node fnode;
-			fem.divider.figure.CZMark czmark;
+			
+			// 'mainEl is not unused'-warning: when constructing, his elements will be added to 'elements' of first 'Node'
+			@SuppressWarnings("unused")
+         Element mainEl = new Element(aux1, aux2, aux3);
+			@SuppressWarnings("unused")
+         fem.divider.figure.Node fnode;
+			@SuppressWarnings("unused")
+         fem.divider.figure.CZMark czmark;
 			Node node;
-			Element el, el1, el2, el3;
-			//we will use this array of arrays to trace contours (that may be damaged);
+			@SuppressWarnings("unused")
+         Element el, el1, el2, el3;
+			
+			//we will use this array of arrays to trace contours (that may be broken or unclosed)
 			ArrayList<ArrayList<Node>> traces = new ArrayList<ArrayList<Node>>(fig.contoursCount());
 			/* At first, create large triangle, that may contain @fig, then add a dot
 			 * 	from @fig and split original triangle to three smaller by this dot.
 			 * Then select next dot, choice triangle, that contains it - and do splitting
 			 * 	on it.
 			 */
-			for( Contour contour : fig.getContours() )
-			{
+			for( Contour contour : fig.getContours() ) {
 					ArrayList<Node> mesh_nodes = new ArrayList<Node>( contour.getNodesAmount() );
 					//Add nodes of contour to mesh
-					for( Dot dot : contour.getDots() )
-					{
+					for( Dot dot : contour.getDots() ) {
 							el = mesh.findElementThatCovers(dot);
 							if(el==null)
 								return "Error: found a node (x=" + dot.x + ",y=" + dot.y +") that isn't covered by any element"; //$NON-NLS-1$
@@ -163,8 +165,13 @@ public class MethodDefault extends MethodAbstract {
 					}
 					traces.add( mesh_nodes );
 			}
-				
-			// Put all Node of the contour to the same Element 
+			
+			aux1.delete();
+         aux2.delete();
+         aux3.delete();
+         mesh.cleanElements(fig.getContours());
+		
+			// Fix a Contour if it is broken (make sure, that Nodes-neighbors are connected)
 			Node prev, curr;
 			for( ArrayList<Node> nodes : traces ) {
 				if( nodes.size() == 0 ) return "Error: get empty contour";
@@ -177,7 +184,7 @@ public class MethodDefault extends MethodAbstract {
 					curr = nodes.get(i);
 					mesh.fixEdge(prev, curr);
 				}
-				if( i > 1 ) // fix first and last Nodes
+				if( i > 1 ) // fix first and last Nodes (not necessary, if they are only two)
 					mesh.fixEdge(curr, nodes.get(0));
 			}
 
@@ -185,11 +192,6 @@ public class MethodDefault extends MethodAbstract {
 				System.out.println("NOTICE: removing irrelevant elements switched off for debug");
 				return null;
 			}
-			
-			aux1.delete();
-			aux2.delete();
-			aux3.delete();
-			mesh.cleanElements(fig.getContours());
 			
 			return null;
 	}//end watson

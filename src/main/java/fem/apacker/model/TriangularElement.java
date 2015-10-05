@@ -7,7 +7,15 @@ import java.text.MessageFormat;
 
 public class TriangularElement extends Triangle {
 
-    private int index;
+    public TriangularElement(Dot A_, Dot B_, Dot C_) {
+      super(A_, B_, C_);
+   }
+   
+    public TriangularElement(){
+       super(null, null, null);
+    }
+
+   private int index;
 
     private SegmentInfluence[] segmentInfluences = new SegmentInfluence[3];
     

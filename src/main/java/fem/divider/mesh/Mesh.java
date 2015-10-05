@@ -151,8 +151,8 @@ public class Mesh {
 			            nearest = nodes[i];
 			      }
 			}		
-			// Ignore warning 'unused' - 'link' was add to Mesh in own constructor
-			Element link = new Element(thisNode, nearest, anotherNode); 
+			@SuppressWarnings("unused")
+         Element link = new Element(thisNode, nearest, anotherNode); 
 			return false;
 		}
 		

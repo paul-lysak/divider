@@ -159,7 +159,7 @@ public class MethodDefault extends MethodAbstract {
 							el2 = new Element(el.getNodes()[1], el.getNodes()[2], node);
 							el3 = new Element(el.getNodes()[2], el.getNodes()[0], node);
 							el.delete();
-								
+							
 							node.lawson();
 							mesh_nodes.add(node);//remember node
 					}
@@ -184,8 +184,9 @@ public class MethodDefault extends MethodAbstract {
 					curr = nodes.get(i);
 					mesh.fixEdge(prev, curr);
 				}
-				if( i > 1 ) // fix first and last Nodes (not necessary, if they are only two)
+				if( i > 1 ) {// fix first and last Nodes (not necessary, if they are only two)
 					mesh.fixEdge(curr, nodes.get(0));
+				}
 			}
 
 			if(debugLevel>=DEBUG_LEVEL_NOREMOVE) {

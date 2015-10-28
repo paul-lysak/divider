@@ -130,7 +130,7 @@ public class Mesh {
 				if( thisNodeHolder.swapDiagonalWith(elOpposite) )
 					return true;
 			}
-
+			
 			if( anotherNode.elements.size() < thisNode.elements.size() ){
 				Node temp = anotherNode;
 				anotherNode = thisNode;
@@ -139,16 +139,19 @@ public class Mesh {
 
 			Node nearest = null;
 			double dist = Double.POSITIVE_INFINITY;
+			double thisDist;
 			boolean material = thisNode.isFigure() && anotherNode.isFigure();
 			for( Element thisNodeHolder : thisNode.elements )
 			{
-			   Node[] nodes = thisNodeHolder.getNodes();
-			   for(int i = 0; i < 3; i++)
-			      if( nodes[i] != thisNode ){
-			         if( material && !nodes[i].isFigure() )
+			   for( Node candidate : thisNodeHolder.getNodes() )
+			      if( candidate != thisNode ){
+			         if( material && !candidate.isFigure() )
 			            continue;
-			         if( thisNode.distance(nodes[i]) < dist )
-			            nearest = nodes[i];
+			         thisDist = thisNode.distance(candidate) + anotherNode.distance(candidate);
+			         if( thisDist < dist ){
+			            nearest = candidate;
+			            dist = thisDist;
+			         }
 			      }
 			}		
 			@SuppressWarnings("unused")

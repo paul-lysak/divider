@@ -30,6 +30,7 @@ public class Element extends Triangle {
 
     public static Color elementNumberColor = new Color(0, 100, 0);
 	 public static Color airElementColor    = new Color(43, 127, 176);
+	 public static Color elementInnerColor  = new Color(128, 128, 128, 50);
 
 		/** Creates new Element
 		 * and adds it to mesh of given node
@@ -47,38 +48,39 @@ public class Element extends Triangle {
 	     Color col = g.getColor();
 		  if( start.material == DotMaterial.AIR || end.material == DotMaterial.AIR )
             g.setPaint(airElementColor);
+		  else
+		     g.setPaint(Color.black);
 
         g.drawLine( mesh.panel.xsi( start.getX() ), mesh.panel.ysi( start.getY() ),
                     mesh.panel.xsi( end.getX() ),   mesh.panel.ysi( end.getY() )    );
         g.setPaint(col);
 	 }
+	 private void drawTriangle( Node first, Node second, Node third, Graphics2D g ){
+	    if( !first.isFigure() || !second.isFigure() || !third.isFigure() )
+	       return;
+	    int[] xPoints = { mesh.panel.xsi(first.getX()), mesh.panel.xsi(second.getX()), mesh.panel.xsi(third.getX()) };
+	    int[] yPoints = { mesh.panel.ysi(first.getY()), mesh.panel.ysi(second.getY()), mesh.panel.ysi(third.getY()) };
+	    g.setPaint(elementInnerColor);
+		 g.fillPolygon( xPoints, yPoints, 3 );
+	 }
     public void draw(Graphics2D g)
     {
-                    Node A = getNodes()[0];
-                    Node B = getNodes()[1];
-                    Node C = getNodes()[2];
-                    MeshPanel p = mesh.panel;
+       Node A = getNodes()[0];
+       Node B = getNodes()[1];
+       Node C = getNodes()[2];
+       MeshPanel p = mesh.panel;
 						  
+       drawTriangle(A, B, C, g);
+       drawSide(A, B, g);
+       drawSide(B, C, g);
+       drawSide(C, A, g);
 
-						  drawSide(A, B, g);
-                    drawSide(B, C, g);
-                    drawSide(C, A, g);
-
-                    if(fem.divider.Divider.getDivider().getPreferences().isShowMeshElementNumbers())
-                            {
-                                    Color col = g.getColor();
-                                    g.setPaint(elementNumberColor);
-                                    g.drawString((index+1)+"" , p.xsi( getCentralDot().getX() ), p.ysi( getCentralDot().getY()  )); //$NON-NLS-1$
-                                    g.setPaint(col);
-                            }
-
-/*
-                    g.drawLine( p.xsi(centralDot().getX())-5, p.ysi(centralDot().getY())-5, 
-                                    p.xsi(centralDot().getX())+5, p.ysi(centralDot().getY())+5);
-                    g.drawLine( p.xsi(centralDot().getX())-5, p.ysi(centralDot().getY())+5, 
-                                    p.xsi(centralDot().getX())+5, p.ysi(centralDot().getY())-5);
-*/
-//				drawFignu(g);
+       if(fem.divider.Divider.getDivider().getPreferences().isShowMeshElementNumbers()) {
+          Color col = g.getColor();
+			 g.setPaint(elementNumberColor);
+			 g.drawString((index+1)+"" , p.xsi( getCentralDot().getX() ), p.ysi( getCentralDot().getY()  )); //$NON-NLS-1$
+			 g.setPaint(col);
+		 }
     }
 
     /**

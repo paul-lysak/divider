@@ -24,12 +24,10 @@ import fem.geometry.Dot;
 public class Contour {
 
 		/** Creates new Contour */
-    public Contour(Figure figure_) 
-		{
-				figure = figure_;
-    }
-
-		
+      public Contour(Figure figure_) {
+         figure = figure_;
+      }
+      
 		public void draw(Graphics2D graphics)
 		{
 				if(positive)
@@ -39,7 +37,7 @@ public class Contour {
 						
 				for(Node node : nodes)
 				{
-						node.draw(graphics);
+				   node.draw(graphics);
 				}
 		}
 		
@@ -328,6 +326,7 @@ public class Contour {
 		public Figure        getFigure()                     { return figure;}
 		public boolean       isEmpty()                       { return nodes.isEmpty(); }
 		public int           getNodesAmount()                { return nodes.size(); }
+		
 		
 		static ContourEditDialog dialog = new ContourEditDialog();
 		

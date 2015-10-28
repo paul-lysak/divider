@@ -84,10 +84,18 @@ public class Node extends Dot// implements ContourComponent
 	
 	public void draw(Graphics2D graphics)
 	{
-		if( this.material == DotMaterial.AIR )
+		if( this.material == DotMaterial.AIR ){
 			graphics.setPaint(cAir);
-		else
+			graphics.setStroke(new BasicStroke(1.0f, 
+			      BasicStroke.CAP_SQUARE,    // End cap
+               BasicStroke.JOIN_MITER,    // Join style
+               10.0f,                     // Miter limit
+               new float[] {21.0f, 9.0f, 3.0f, 9.0f}, // Dash pattern
+               0.0f));
+		} else {
 		   graphics.setPaint(cFigure);
+		   graphics.setStroke(new BasicStroke(1.0f));
+		}
 		
 		FigurePanel panel = contour.figure.panel;
 		graphics.drawOval(panel.xsi(x)-2, panel.ysi(y)-2, 4, 4);
@@ -196,8 +204,8 @@ class NodeEditDialog extends AbstractEditingDialog implements FocusListener
 	JComboBox<String> materialField;
 	Node node;
 	static final String[] material_items = {
-         "Air", 
-         "Figure"
+	      "Air",
+	      "Figure"
    };
    
 	NodeEditDialog() {

@@ -286,14 +286,12 @@ if( !nod.panel.getWorld().isInside(x,y) )
 		return result;
 	}
 
-   @Override
    public void focusGained(FocusEvent e) {
       JTextField caller = (JTextField) e.getComponent();
       if( caller != null )
          caller.selectAll();
    }
 
-   @Override
    public void focusLost(FocusEvent e) {
       // TODO Auto-generated method stub
       

@@ -131,12 +131,13 @@ public class Mesh {
 					return true;
 			}
 			
-			if( anotherNode.elements.size() < thisNode.elements.size() ){
+			if( anotherNode.elements.size() < thisNode.elements.size() ){ // decrease looping 
 				Node temp = anotherNode;
 				anotherNode = thisNode;
 				thisNode = temp;
 			}
 
+			// Fix half of the gap in the contour by new Element, created on thisNode, anotherNode and nearest to both of them
 			Node nearest = null;
 			double dist = Double.POSITIVE_INFINITY;
 			double thisDist;
@@ -155,7 +156,27 @@ public class Mesh {
 			      }
 			}		
 			@SuppressWarnings("unused")
-         Element link = new Element(thisNode, nearest, anotherNode); 
+			Element link = new Element(thisNode, nearest, anotherNode); 
+			
+			// fix another half of the gap
+			Element link2 = null;
+			outerLoop:
+			for( Element nearestHolder : nearest.elements ){
+				for( Node candidate : nearestHolder.getNodes() ){
+					if( candidate != anotherNode && candidate != thisNode && candidate != nearest ){
+						for( Element candidateHolder : candidate.elements ){
+							for( Node connection : candidateHolder.getNodes() ) {
+								if( connection == anotherNode ){
+									link2 = new Element( anotherNode, candidate, nearest );
+									break outerLoop;
+								}
+							}
+						}
+					}
+				}
+			}
+			System.out.println(link + " " + link2);
+			
 			return false;
 		}
 		

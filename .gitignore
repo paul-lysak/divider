@@ -2,4 +2,6 @@
 *.ipr
 *.iws
 target/
-
+*.swp
+.classpath
+.project

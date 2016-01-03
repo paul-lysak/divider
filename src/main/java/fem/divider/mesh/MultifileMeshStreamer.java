@@ -153,7 +153,7 @@ public class MultifileMeshStreamer implements IMeshStreamer {
 		{
 			for(Node node : mesh.nodes)
 			{
-				materialWriter.println(Divider.formatNumberS(node.material.getValue())); 
+				materialWriter.println(Divider.formatNumberS(node.getMaterial().getValue())); 
 			}
 			
 		}
